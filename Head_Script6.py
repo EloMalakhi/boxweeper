@@ -8,7 +8,7 @@ import define
 TheMasterList = []
 
 global presetPuzzleMines, Cx, Cy, Cz, MineHitter
-global GPx, GPy, GPz, LPx, LPy, LPz, PinkBoxNumber
+global PinkBoxNumber
 global C1, C2, C3, C4, C5, C6, WidthOfButton, HeightOfButton, FS, LabeledBoxes, AmountOfReleasedBoxes
 global Confirmation, TotalB, PRESETFILE, error, mode, IndexFiles, Num_to_Coord, hoverover_elementtags, hoverover_texttags
 
@@ -62,8 +62,6 @@ GamePuzzle = Puzzle()
 
 # presetViewBoxX, presetViewBoxY, presetViewBoxZ define the viewed scope of the puzzle
 
-# GPx, GPy, GPz, LPx, LPy, LPz, these define the greatest and lowest allowable x, y, z points for the center of the view box
-
 # PinkBoxNumber, when the box doesn't have the dimensions 3x3x3 then the center has to be determined otherwise, also it must
 # be indicated to the user which box carries the coordinates displayed in the text field, so during unusual presets that
 # box will be colored pink
@@ -75,39 +73,37 @@ GamePuzzle = Puzzle()
 
 
 def check_for_direction(Cx, Cy, Cz):
-    global GPx, GPy, GPz, LPx, LPy, LPz
     List = {}
     count = -1
-    if Cx > LPx:
+    if Cx > GamePuzzle.centerLLim.xv:
         count += 1
         List[count] = 'left'
-    if Cx < GPx:
+    if Cx < GamePuzzle.centerGLim.xv:
         count += 1
         List[count] = 'right'
-    if Cy > LPy:
+    if Cy > GamePuzzle.centerLLim.yv:
         count += 1
         List[count] = 'down'
-    if Cy < GPy:
+    if Cy < GamePuzzle.centerGLim.yv:
         count += 1
         List[count] = 'up'
-    if Cz > LPz:
+    if Cz > GamePuzzle.centerLLim.zv:
         count += 1
         List[count] = 'backward'
-    if Cz < GPz:
+    if Cz < GamePuzzle.centerGLim.zv:
         count += 1
         List[count] = 'forward'
     return List
 
 def check_in_bounds(x, y, z):
     TorF = False
-    global GPx, GPy, GPz, LPx, LPy, LPz
     if isINTEGER(x) and isINTEGER(y) and isINTEGER(z):
         x = int(x)
         y = int(y)
         z = int(z)
-        if x <= GPx and x >= LPx:
-            if y <= GPy and y >= LPy:
-                if z <= GPz and z >= LPz:
+        if x <= GamePuzzle.centerGLim.xv and x >= GamePuzzle.centerLLim.xv:
+            if y <= GamePuzzle.centerGLim.yv and y >= GamePuzzle.centerLLim.yv:
+                if z <= GamePuzzle.centerGLim.zv and z >= GamePuzzle.centerLLim.zv:
                     TorF = True
     print(f'{x} {y} {z}')
     print(TorF)
@@ -158,7 +154,7 @@ def ValidateLabels():
 
 def D3_Minesweeper_Post2(request):
     global presetPuzzleMines, Cx, Cy, Cz, MineHitter
-    global GPx, GPy, GPz, LPx, LPy, LPz, PinkBoxNumber
+    global PinkBoxNumber
     global C1, C2, C3, C4, C5, C6, WidthOfButton, HeightOfButton, FS, LabeledBoxes, AmountOfReleasedBoxes, hoverover_texttags
     global Confirmation, TotalB, PRESETFILE, hoverover_elementtags, Num_to_Coord, PinkBoxNumber
     EnoughInformation = True
@@ -196,17 +192,13 @@ def D3_Minesweeper_Post2(request):
         HeightOfButton = 24/GamePuzzle.view.yv
         FS = (60/(GamePuzzle.view.zy * GamePuzzle.view.xv)**(1/3))
         # define the center of the displayed cube:
-        GPx = GamePuzzle.total.xv - 2
-        GPy = GamePuzzle.total.yv - 2
-        GPz = GamePuzzle.total.zv - 2
-        LPx  = GamePuzzle.view.xv - 2
-        LPy  = GamePuzzle.view.yv - 2
-        LPz  = GamePuzzle.view.zv - 2
-        Cx = GPx
-        Cy = GPy
-        Cz = GPz
+        GamePuzzle.centerGLim.set(GamePuzzle.total.xv - 2, GamePuzzle.total.yv - 2, GamePuzzle.total.zv - 2)
+        GamePuzzle.centerLLim.set(GamePuzzle.view.xv - 2, GamePuzzle.view.yv - 2, GamePuzzle.view.zv - 2)
+        Cx = GamePuzzle.centerGLim.xv
+        Cy = GamePuzzle.centerGLim.yv
+        Cz = GamePuzzle.centerGLim.zv
         LabeledBoxes = 0
-        PinkBoxNumber  = (GamePuzzle.view.yv - 2)*GamePuzzle.view.xz + LPx*GamePuzzle.view.zv + (GamePuzzle.view.zv - 1)
+        PinkBoxNumber  = (GamePuzzle.view.yv - 2)*GamePuzzle.view.xz + GamePuzzle.centerLLim.xv*GamePuzzle.view.zv + (GamePuzzle.view.zv - 1)
         # the globalization is used to make one data instance for memory purposes
         global hoverover_elementtags, hoverover_texttags, Num_to_Coord
         # and set the type of  these:
@@ -251,22 +243,22 @@ def D3_Minesweeper_Post2(request):
                     PointsRecord[i][0] = 0
                     tryX, tryY, tryZ = i[0], i[1], i[2]
                     break
-        if tryX < LPx:
-            Cx = LPx
-        elif tryX > GPx:
-            Cx = GPx
+        if tryX < GamePuzzle.centerLLim.xv:
+            Cx = GamePuzzle.centerLLim.xv
+        elif tryX > GamePuzzle.centerGLim.xv:
+            Cx = GamePuzzle.centerGLim.xv
         else:
             Cx = tryX
-        if tryY < LPy:
-            Cy = LPy
-        elif tryY > GPy:
-            Cy = GPy
+        if tryY < GamePuzzle.centerLLim.yv:
+            Cy = GamePuzzle.centerLLim.yv
+        elif tryY > GamePuzzle.centerGLim.yv:
+            Cy = GamePuzzle.centerGLim.yv
         else:
             Cy = tryY
-        if tryZ < LPz:
-            Cz = LPz
-        elif tryZ > GPz:
-            Cz = GPz
+        if tryZ < GamePuzzle.centerLLim.zv:
+            Cz = GamePuzzle.centerLLim.zv
+        elif tryZ > GamePuzzle.centerGLim.zv:
+            Cz = GamePuzzle.centerGLim.zv
         else:
             Cz = tryZ
         return redirect(url_for('Minesweeper_play'))
@@ -276,7 +268,7 @@ def D3_Minesweeper_Post2(request):
 def D3_Minesweeper_Post1(request):
     
     global presetPuzzleMines, Cx, Cy, Cz, MineHitter
-    global GPx, GPy, GPz, LPx, LPy, LPz, PinkBoxNumber
+    global PinkBoxNumber
     global C1, C2, C3, C4, C5, C6, WidthOfButton, HeightOfButton, FS, LabeledBoxes, AmountOfReleasedBoxes
     global Confirmation, TotalB, Num_to_Coord, hoverover_elementtags, hoverover_texttags, PinkBoxNumber
 
@@ -307,17 +299,17 @@ def D3_Minesweeper_Post1(request):
         HeightOfButton = 24/GamePuzzle.total.yv
         FS = (60/(GamePuzzle.total.xy*GamePuzzle.total.zv)**(1/3))
         # define the center of the displayed cube:
-        GPx = GamePuzzle.total.xv - 2
-        GPy = GamePuzzle.total.yv - 2
-        GPz = GamePuzzle.total.zv - 2
-        LPx  = GamePuzzle.view.xv - 2
-        LPy  = GamePuzzle.view.yv - 2
-        LPz  = GamePuzzle.view.zv - 2
-        Cx = GPx
-        Cy = GPy
-        Cz = GPz
+        GamePuzzle.centerGLim.xv = GamePuzzle.total.xv - 2
+        GamePuzzle.centerGLim.yv = GamePuzzle.total.yv - 2
+        GamePuzzle.centerGLim.zv = GamePuzzle.total.zv - 2
+        GamePuzzle.centerLLim.xv  = GamePuzzle.view.xv - 2
+        GamePuzzle.centerLLim.yv  = GamePuzzle.view.yv - 2
+        GamePuzzle.centerLLim.zv  = GamePuzzle.view.zv - 2
+        Cx = GamePuzzle.centerGLim.xv
+        Cy = GamePuzzle.centerGLim.yv
+        Cz = GamePuzzle.centerGLim.zv
         LabeledBoxes = 0
-        PinkBoxNumber  = (GamePuzzle.view.yv - 2)*GamePuzzle.view.xz + LPx*GamePuzzle.view.zv + (GamePuzzle.view.zv - 1)
+        PinkBoxNumber  = (GamePuzzle.view.yv - 2)*GamePuzzle.view.xz + GamePuzzle.centerLLim.xv*GamePuzzle.view.zv + (GamePuzzle.view.zv - 1)
         # the globalization is used to make one data instance for memory purposes
         global hoverover_elementtags, hoverover_texttags, Num_to_Coord
         # and set the type of  these:
@@ -364,22 +356,22 @@ def D3_Minesweeper_Post1(request):
                     PointsRecord[i][0] = "0"
                     tryX, tryY, tryZ = i[0], i[1], i[2]
                     break
-        if tryX < LPx:
-            Cx = LPx
-        elif tryX > GPx:
-            Cx = GPx
+        if tryX < GamePuzzle.centerLLim.xv:
+            Cx = GamePuzzle.centerLLim.xv
+        elif tryX > GamePuzzle.centerGLim.xv:
+            Cx = GamePuzzle.centerGLim.xv
         else:
             Cx = tryX
-        if tryY < LPy:
-            Cy = LPy
-        elif tryY > GPy:
-            Cy = GPy
+        if tryY < GamePuzzle.centerLLim.yv:
+            Cy = GamePuzzle.centerLLim.yv
+        elif tryY > GamePuzzle.centerGLim.yv:
+            Cy = GamePuzzle.centerGLim.yv
         else:
             Cy = tryY
-        if tryZ < LPz:
-            Cz = LPz
-        elif tryZ > GPz:
-            Cz = GPz
+        if tryZ < GamePuzzle.centerLLim.zv:
+            Cz = GamePuzzle.centerLLim.zv
+        elif tryZ > GamePuzzle.centerGLim.zv:
+            Cz = GamePuzzle.centerGLim.zv
         else:
             Cz = tryZ
         return redirect(url_for('Minesweeper_play'))
@@ -518,6 +510,12 @@ def Minesweeper_play():
             savefile.write("hoverover_texttags = " + str(hoverover_texttags) + "\n")
             savefile.write("HeightOfButton = " + str(HeightOfButton) + "\n")
             savefile.write("WidthOfButton = " + str(WidthOfButton) + "\n")
+            savefile.write(f"GLX = {GamePuzzle.centerGLim.xv}\n")
+            savefile.write(f"GLY = {GamePuzzle.centerGLim.yv}\n")
+            savefile.write(f"GLZ = {GamePuzzle.centerGLim.zv}\n")
+            savefile.write(f"LLX = {GamePuzzle.centerLLim.xv}\n")
+            savefile.write(f"LLY = {GamePuzzle.centerLLim.yv}\n")
+            savefile.write(f"LLZ = {GamePuzzle.centerLLim.zv}\n")
             savefile.close()
             return redirect(url_for('Minesweeper_play'))
         elif request.form.get('open'):
@@ -526,8 +524,11 @@ def Minesweeper_play():
             from savefile import T_H, T_W, T_L, V_X, V_Y, V_Z, presetPuzzleMines,  MineHitter
             from savefile import AmountOfReleasedBoxes, TotalB, LabeledBoxes, Num_to_Coord, Cx, Cy, Cz, hoverover_elementtags, hoverover_texttags
             from savefile import PinkBoxNumber, WidthOfButton, HeightOfButton
+            from savefile import GLX, GLY, GLZ, LLX, LLY, LLZ
             GamePuzzle.total.set(T_W, T_H, T_L)
             GamePuzzle.view.set(V_X, V_Y, V_Z)
+            GamePuzzle.centerGLim.set(GLX, GLY, GLZ)
+            GamePuzzle.centerLLim.set(LLX, LLY, LLZ)
             return redirect(url_for('Minesweeper_play'))
         else:
             Confirmation = ""
