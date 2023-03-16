@@ -517,7 +517,7 @@ def Minesweeper_play():
             savefile.write("MineHitter = " + str(GamePuzzle.death) + "\n") 
             savefile.write("AmountOfReleasedBoxes = " + str(GamePuzzle.boxes.open) + "\n")
             savefile.write("LabeledBoxes = " + str(GamePuzzle.boxes.guessed) + "\n")
-            savefile.write(f"mode = {GameSetup.mode}")
+            savefile.write(f"mode = {GameSetup.mode}\n")
             savefile.write("Num_to_Coord = " + str(GamePuzzle.ViewCubeCoordTranslate) + "\n")
             savefile.write("Cx = " + str(GamePuzzle.usercenter.xv) + "\n")
             savefile.write("Cy = " + str(GamePuzzle.usercenter.yv) + "\n")
