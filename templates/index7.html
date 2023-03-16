@@ -84,7 +84,7 @@ To select a box as a mine, right click on it. then left click on it       {{LL}}
         {% endfor %}
 
         {% for i in range(amount_of_directions) %}
-            <input type="submit" style="position: absolute; left: 5%; top: {{10*i + 10}}%; color: dark-green" name={{Available_directions[i][1]}} value={{Available_directions[i][1]}}>
+            <input type="submit" style="position: absolute; left: 5%; top: {{10*i + 10}}%; color: dark-green" name={{Available_directions[i]}} value={{Available_directions[i]}}>
         {% endfor %}
         {% if px != 3 or py != 3 or pz != 3 %}
             <pre style="position: absolute; left: 5%; top: 80%; color: white; font-size: 20">Location of pink box</pre>
