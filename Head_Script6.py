@@ -7,8 +7,9 @@ import define
 # the globalization of these variables is to deter the creation of a new variable for the same purpose every function call
 TheMasterList = []
 
-
-global PRESETFILE, error, mode, IndexFiles, Num_to_Coord, hoverover_elementtags, hoverover_texttags
+Num_to_Coord = {}
+PointsRecord = {}
+global MODII
 
 # all the variables above have to be put into classes
 
@@ -65,6 +66,7 @@ class Puzzle(object):
         self.usercenter = PuzzleNode()
         self.pinkboxnumber = None
 
+
 class Construct(object):
     def __init__(self):
         self.x = ConstructNode()
@@ -73,15 +75,26 @@ class Construct(object):
 
 class Caption(object):
     def __init__(self):
+        self.confirmation = None
+        self.hoveroverelement = {}
+        self.hoverovertext = {}
+
+class Setup(object):
+    def __init(self):
         pass
 
-    def set(self, Confirmation):
-        self.confirmation = Confirmation
-
+    def set(self, Matrix, error, EnoughInformation, pf, IF, mode):
+        self.FileMatrix = Matrix
+        self.error = error
+        self.EnoughInformation = EnoughInformation
+        self.PresetFile = pf
+        self.indexFile = IF
+        self.mode = mode
 
 GamePuzzle = Puzzle()
 GameStruct = Construct()
 GameCaptions = Caption()
+GameSetup = Setup()
 # presetPuzzleHeight, presetPuzzleLength, presetPuzzleWidth define the total scope of the height, length, and width of the puzzle
 
 # presetViewBoxX, presetViewBoxY, presetViewBoxZ define the viewed scope of the puzzle
@@ -174,20 +187,18 @@ def ValidateLabels():
         return False
 
 def D3_Minesweeper_Post2(request):
-    global hoverover_texttags
-    global PRESETFILE, hoverover_elementtags, Num_to_Coord
-    EnoughInformation = True
+    GameSetup.EnoughInformation = True
     if request.form.get('v14'):
-        error, EnoughInformation = validate.presets_of_type_2(request, "")
+        GameSetup.error, GameSetup.EnoughInformation = validate.presets_of_type_2(request, "")
 
-    if EnoughInformation:
+    if GameSetup.EnoughInformation:
         GamePuzzle.total.set(int(request.form.get('v1')), int(request.form.get('v3')), int(request.form.get('v5')))
         GamePuzzle.boxes.set(0, GamePuzzle.total.xy*GamePuzzle.total.zv - int(request.form.get('v7')), int(request.form.get('v7')), 0)
         GamePuzzle.view.set(3, 3, 3)
         GamePuzzle.death = 0
 
         GamePuzzle.boxes.open = 1
-        GameCaptions.set("")
+        GameCaptions.confirmation = ""
         GameStruct.x.set(
             34 - 12/GamePuzzle.view.zv - 12/GamePuzzle.view.xv - 12/(GamePuzzle.view.xv - 1),
             12/GamePuzzle.view.zv,
@@ -210,14 +221,12 @@ def D3_Minesweeper_Post2(request):
         GamePuzzle.boxes.guessed = 0
         GamePuzzle.pinkboxnumber  = (GamePuzzle.view.yv - 2)*GamePuzzle.view.xz + GamePuzzle.centerLLim.xv*GamePuzzle.view.zv + (GamePuzzle.view.zv - 1)
         # the globalization is used to make one data instance for memory purposes
-        global hoverover_elementtags, hoverover_texttags, Num_to_Coord
         # and set the type of  these:
-        hoverover_elementtags = {}
-        hoverover_texttags = {}
+
+        GameCaptions.hoverovertext = {}
         Num_to_Coord = {}
 
         # get the Large Cube that is the game
-        global PointsRecord
         import test4
         PointsRecord = test4.MakeSweeperGame(GamePuzzle.total.yv, GamePuzzle.total.xv, GamePuzzle.total.zv, GamePuzzle.boxes.unfound_mines)
 
@@ -238,9 +247,9 @@ def D3_Minesweeper_Post2(request):
             for j in range(GamePuzzle.view.xv):
                 for k in range(GamePuzzle.view.zv):
                     # dwmio = do when mouse is over
-                    hoverover_elementtags[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'dwmio' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
+                    GameCaptions.hoveroverelement[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'dwmio' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
                     # posie is short for position
-                    hoverover_texttags[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'posie' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
+                    GameCaptions.hoverovertext[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'posie' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
                     # while running through these numbers it makes a hash to convert from number to coordinate
                     Num_to_Coord[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = [j + 2 - GamePuzzle.view.xv, i + 2 - GamePuzzle.view.yv, k + 2 - GamePuzzle.view.zv]
         NoZero = True
@@ -272,20 +281,19 @@ def D3_Minesweeper_Post2(request):
             GamePuzzle.usercenter.zv = tryZ
         return redirect(url_for('Minesweeper_play'))
     else:
-        return render_template(PRESETFILE, error=error)
+        return render_template(GameSetup.PresetFile, error=GameSetup.error)
 
 def D3_Minesweeper_Post1(request):
     
 
 
-    global Num_to_Coord, hoverover_elementtags, hoverover_texttags
 
-    EnoughInformation = True
+    GameSetup.EnoughInformation = True
     if request.form.get('v14'):
         import validate
-        error, EnoughInformation = validate.presets_of_type_1(request, "")
+        GameSetup.error, GameSetup.EnoughInformation = validate.presets_of_type_1(request, "")
 
-    if EnoughInformation:
+    if GameSetup.EnoughInformation:
         GamePuzzle.total.set(int(request.form.get('v1')), int(request.form.get('v3')), int(request.form.get('v5')))
         GamePuzzle.boxes.unfound_mines = int(request.form.get('v7'))
         GamePuzzle.view.set(int(request.form.get('v9')), int(request.form.get('v11')), int(request.form.get('v13')))
@@ -294,7 +302,7 @@ def D3_Minesweeper_Post1(request):
         GamePuzzle.death = 0
 
         GamePuzzle.boxes.open = 1
-        GameCaptions.set("")
+        GameCaptions.confirmation = ""
 
         GameStruct.x.set(
             34 - 12/GamePuzzle.view.zv - 12/GamePuzzle.view.xv - 12/(GamePuzzle.view.xv - 1),
@@ -320,15 +328,14 @@ def D3_Minesweeper_Post1(request):
         GamePuzzle.usercenter.zv = GamePuzzle.centerGLim.zv
         GamePuzzle.boxes.guessed = 0
         GamePuzzle.pinkboxnumber  = (GamePuzzle.view.yv - 2)*GamePuzzle.view.xz + GamePuzzle.centerLLim.xv*GamePuzzle.view.zv + (GamePuzzle.view.zv - 1)
+
         # the globalization is used to make one data instance for memory purposes
-        global hoverover_elementtags, hoverover_texttags, Num_to_Coord
         # and set the type of  these:
-        hoverover_elementtags = {}
-        hoverover_texttags = {}
+        GameCaptions.hoveroverelement = {}
+        GameCaptions.hoverovertext = {}
         Num_to_Coord = {}
 
         # get the Large Cube that is the game
-        global PointsRecord
         import test4
         PointsRecord = test4.MakeSweeperGame(GamePuzzle.total.yv, GamePuzzle.total.xv, GamePuzzle.total.zv, GamePuzzle.boxes.unfound_mines)
 
@@ -350,9 +357,9 @@ def D3_Minesweeper_Post1(request):
             for j in range(GamePuzzle.view.xv):
                 for k in range(GamePuzzle.view.zv):
                     # dwmio = do when mouse is over
-                    hoverover_elementtags[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'dwmio' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
+                    GameCaptions.hoveroverelement[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'dwmio' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
                     # posie is short for position
-                    hoverover_texttags[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'posie' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
+                    GameCaptions.hoverovertext[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'posie' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
                     # while running through these numbers it makes a hash to convert from number to coordinate
                     Num_to_Coord[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = [j + 2 - GamePuzzle.view.xv, i + 2 - GamePuzzle.view.yv, k + 2 - GamePuzzle.view.zv]
  
@@ -387,7 +394,7 @@ def D3_Minesweeper_Post1(request):
         return redirect(url_for('Minesweeper_play'))
     else:
         
-        return render_template(PRESETFILE, error=error)
+        return render_template(GameSetup.PresetFile, error=GameSetup.error)
 
 
 
@@ -406,29 +413,29 @@ def Modes():
         makes a dictionary attaching the mode number to the necessary web pages
         loops through the modes until 
     """
-    global PRESETFILE, mode, IndexFiles
+    global MODII
     modes = 4
-    PresetFiles = {0: "Presets.html", 1: "Presets3.html", 2: "Presets3.html", 3: "Presets3.html"}
-    IndexFiles = {0: "index5.html", 1: "index7.html", 2: "index8.html", 3: "index9.html"}
+    GameSetup.set([{0: "Presets.html", 1: "Presets3.html", 2: "Presets3.html", 3: "Presets3.html"}, 
+                   {0: "index5.html", 1: "index7.html", 2: "index8.html", 3: "index9.html"}],
+                   "", "", "", "", 0)
     if request.method == 'GET':
         return render_template('Modes.html', modes=modes)
     else:
-        print(request.form)
         for i in range(modes):
             if request.form.get(str(i)):
-                PRESETFILE = PresetFiles[i]
-                mode = i
+                GameSetup.PresetFile = GameSetup.Matrix[0][i]
+                GameSetup.mode = i
     return redirect(url_for('D3_Minesweeper'))
             
 
 @app.route('/D3_Minesweeper', methods=['GET', 'POST'])
 def D3_Minesweeper():
-    global PRESETFILE, mode
+    global mode
     if request.method == 'GET':
-        return render_template(PRESETFILE)
+        return render_template(GameSetup.PresetFile)
     else:
         
-        if mode == 0:
+        if GameSetup.mode == 0:
             
             return D3_Minesweeper_Post1(request)
         else:
@@ -438,16 +445,15 @@ def D3_Minesweeper():
 
 @app.route('/Minesweeper_play', methods=['GET', 'POST'])
 def Minesweeper_play():
-    global PointsRecord, mode, IndexFiles
-    global Num_to_Coord, hoverover_elementtags, hoverover_texttags
+    global MODII
     if request.method == 'GET':
         if GamePuzzle.death < 3:
-            return render_template(IndexFiles[mode],
-            hoverover_elementtags=hoverover_elementtags,
+            return render_template(GameSetup.Matrix[1][GameSetup.mode],
+            hoverover_elementtags=GameCaptions.hoveroverelement,
             xX = GamePuzzle.total.xv, 
             yY = GamePuzzle.total.yv, 
             zZ = GamePuzzle.total.zv,
-            hoverover_texttags=hoverover_texttags, TB=GamePuzzle.total.xy*GamePuzzle.total.zv,
+            hoverover_texttags=GameCaptions.hoverovertext, TB=GamePuzzle.total.xy*GamePuzzle.total.zv,
             Num_to_Coord=Num_to_Coord, x=GamePuzzle.usercenter.xv, y=GamePuzzle.usercenter.yv, z=GamePuzzle.usercenter.zv, FS=GameStruct.font_size, Strikes=GamePuzzle.death,
             MineHitter=GamePuzzle.death, 
             px = GamePuzzle.view.xv,
@@ -513,8 +519,8 @@ def Minesweeper_play():
             savefile.write("Cy = " + str(GamePuzzle.usercenter.yv) + "\n")
             savefile.write("Cz = " + str(GamePuzzle.usercenter.zv) + "\n")
             savefile.write("PinkBoxNumber = " + str(GamePuzzle.pinkboxnumber) + "\n")
-            savefile.write("hoverover_elementtags = " + str(hoverover_elementtags) + "\n")
-            savefile.write("hoverover_texttags = " + str(hoverover_texttags) + "\n")
+            savefile.write("hoverover_elementtags = " + str(GameCaptions.hoveroverelement) + "\n")
+            savefile.write("hoverover_texttags = " + str(GameCaptions.hoverovertext) + "\n")
             savefile.write("HeightOfButton = " + str(GameStruct.y.ob) + "\n")
             savefile.write("WidthOfButton = " + str(GameStruct.x.ob) + "\n")
             savefile.write(f"GLX = {GamePuzzle.centerGLim.xv}\n")
@@ -552,6 +558,8 @@ def Minesweeper_play():
             GamePuzzle.boxes.guessed = LabeledBoxes
             GamePuzzle.boxes.open = AmountOfReleasedBoxes
             GameCaptions.confirmation = Confirmation
+            GameCaptions.hoveroverelement = hoverover_elementtags
+            GameCaptions.hoverovertext = hoverover_texttags
             return redirect(url_for('Minesweeper_play'))
         else:
             GameCaptions.confirmation = ""
