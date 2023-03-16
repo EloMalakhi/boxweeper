@@ -3,14 +3,72 @@
 from flask import Flask, session, redirect, render_template, request, abort, escape, url_for
 import re
 import validate
+import define
 # the globalization of these variables is to deter the creation of a new variable for the same purpose every function call
 TheMasterList = []
-global presetPuzzleHeight, presetPuzzleLength, presetPuzzleWidth, presetPuzzleMines, Cx, Cy, Cz, MineHitter
-global presetViewBoxX, presetViewBoxY, presetViewBoxZ,  GPx, GPy, GPz, LPx, LPy, LPz, PinkBoxNumber
+
+global presetPuzzleMines, Cx, Cy, Cz, MineHitter
+global GPx, GPy, GPz, LPx, LPy, LPz, PinkBoxNumber
 global C1, C2, C3, C4, C5, C6, WidthOfButton, HeightOfButton, FS, LabeledBoxes, AmountOfReleasedBoxes
 global Confirmation, TotalB, PRESETFILE, error, mode, IndexFiles, Num_to_Coord, hoverover_elementtags, hoverover_texttags
 
+# all the variables above have to be put into classes
 
+
+class PuzzleNode(object):
+    def __init__(self):
+        pass
+
+    def set(self, x, y, z):
+        self.xv = x
+        self.yv = y
+        self.zv = z
+        self.xx = x*x
+        self.xy = x*y
+        self.xz = x*z
+        self.yx = y*x
+        self.yy = y*y
+        self.yz = y*z
+        self.zx = z*x
+        self.zy = z*y
+        self.zz = z*z
+        
+
+class ConstructNode(object):
+    def __init__(self):
+        pass
+
+    def set(self, base, changeByZ, changeByItself):
+        self.base = base
+        self.Zchange = changeByZ
+        self.self_change = changeByItself
+
+class Puzzle(object):
+    def __init__(self):
+        self.total = PuzzleNode()
+        self.view = PuzzleNode()
+        self.centerLLim = PuzzleNode()
+        self.centerGLim = PuzzleNode()
+        self.mines = None
+        self.death = None
+
+class Construct(object):
+    def __init__(self):
+        self.x = ConstructNode()
+        self.y = ConstructNode()
+
+GamePuzzle = Puzzle()
+# presetPuzzleHeight, presetPuzzleLength, presetPuzzleWidth define the total scope of the height, length, and width of the puzzle
+
+# presetViewBoxX, presetViewBoxY, presetViewBoxZ define the viewed scope of the puzzle
+
+# GPx, GPy, GPz, LPx, LPy, LPz, these define the greatest and lowest allowable x, y, z points for the center of the view box
+
+# PinkBoxNumber, when the box doesn't have the dimensions 3x3x3 then the center has to be determined otherwise, also it must
+# be indicated to the user which box carries the coordinates displayed in the text field, so during unusual presets that
+# box will be colored pink
+
+# C1 - C6 are constants calculated before the calling of the web pages and used to assist flask in correctly spacing the buttons in the index html files
 
 
 
@@ -22,22 +80,22 @@ def check_for_direction(Cx, Cy, Cz):
     count = -1
     if Cx > LPx:
         count += 1
-        List[count] = ['/static/Left.png', 'left']
+        List[count] = 'left'
     if Cx < GPx:
         count += 1
-        List[count] = ['/static/Right.png', 'right']
+        List[count] = 'right'
     if Cy > LPy:
         count += 1
-        List[count] = ['/static/Down.png', 'down']
+        List[count] = 'down'
     if Cy < GPy:
         count += 1
-        List[count] = ['/static/Up.png', 'up']
+        List[count] = 'up'
     if Cz > LPz:
         count += 1
-        List[count] = ['/static/Backward.png', 'backward']
+        List[count] = 'backward'
     if Cz < GPz:
         count += 1
-        List[count] = ['/static/Forward.png', 'forward']
+        List[count] = 'forward'
     return List
 
 def check_in_bounds(x, y, z):
@@ -99,8 +157,8 @@ def ValidateLabels():
         return False
 
 def D3_Minesweeper_Post2(request):
-    global presetPuzzleHeight, presetPuzzleLength, presetPuzzleWidth, presetPuzzleMines, Cx, Cy, Cz, MineHitter
-    global presetViewBoxX, presetViewBoxY, presetViewBoxZ,  GPx, GPy, GPz, LPx, LPy, LPz, PinkBoxNumber
+    global presetPuzzleMines, Cx, Cy, Cz, MineHitter
+    global GPx, GPy, GPz, LPx, LPy, LPz, PinkBoxNumber
     global C1, C2, C3, C4, C5, C6, WidthOfButton, HeightOfButton, FS, LabeledBoxes, AmountOfReleasedBoxes, hoverover_texttags
     global Confirmation, TotalB, PRESETFILE, hoverover_elementtags, Num_to_Coord, PinkBoxNumber
     EnoughInformation = True
@@ -108,43 +166,47 @@ def D3_Minesweeper_Post2(request):
         error, EnoughInformation = validate.presets_of_type_2(request, "")
 
     if EnoughInformation:
-        global presetPuzzleHeight, presetPuzzleWidth, presetPuzzleLength, presetPuzzleMines
-        presetPuzzleWidth = int(request.form.get('v1'))
-        presetPuzzleHeight = int(request.form.get('v3'))
-        presetPuzzleLength = int(request.form.get('v5'))
+        GamePuzzle.total.set(int(request.form.get('v1')), int(request.form.get('v3')), int(request.form.get('v5')))
+        GamePuzzle.mines = int(request.form.get('v7'))
+        GamePuzzle.view.set(3, 3, 3)
         presetPuzzleMines = int(request.form.get('v7'))
-        presetViewBoxY = 3
-        presetViewBoxX = 3
-        presetViewBoxZ = 3
+
+
+
+
+
+
+        
+        GamePuzzle.death = 0
         MineHitter = 0
         AmountOfReleasedBoxes = 1
         Confirmation = ""
-        TotalB = presetPuzzleHeight*presetPuzzleLength*presetPuzzleWidth
+        TotalB = GamePuzzle.total.xy * GamePuzzle.total.zv
 
-        C1 = 34 - 12/presetViewBoxZ - 12/presetViewBoxX - 12/(presetViewBoxX - 1)
-        C2 = 12/presetViewBoxZ
-        C3 = 12/presetViewBoxX + 12/(presetViewBoxX - 1)
-        C4 = 56 + 24/presetViewBoxY + 24/(presetViewBoxY - 1)
-        C5 = 24/presetViewBoxY
-        C6 = -24/presetViewBoxY - 24/(presetViewBoxY - 1)
+        C1 = 34 - 12/GamePuzzle.view.zv - 12/GamePuzzle.view.xv - 12/(GamePuzzle.view.xv - 1)
+        C2 = 12/GamePuzzle.view.zv
+        C3 = 12/GamePuzzle.view.xv + 12/(GamePuzzle.view.xv - 1)
+        C4 = 56 + 24/GamePuzzle.view.yv + 24/(GamePuzzle.view.yv - 1)
+        C5 = 24/GamePuzzle.view.yv
+        C6 = -24/GamePuzzle.view.yv - 24/(GamePuzzle.view.yv - 1)
 
         #C1 = 34 - (1/(presetViewBoxZ - 1) + 1/(presetViewBoxX - 1))*(24 - 12/presetViewBoxX)
 
-        WidthOfButton = 12/presetViewBoxX
-        HeightOfButton = 24/presetViewBoxY
-        FS = (60/(presetViewBoxX*presetViewBoxY*presetViewBoxZ)**(1/3))
+        WidthOfButton = 12/GamePuzzle.view.xv
+        HeightOfButton = 24/GamePuzzle.view.yv
+        FS = (60/(GamePuzzle.view.zy * GamePuzzle.view.xv)**(1/3))
         # define the center of the displayed cube:
-        GPx = presetPuzzleWidth - 2
-        GPy = presetPuzzleHeight - 2
-        GPz = presetPuzzleLength - 2
-        LPx  = presetViewBoxX - 2
-        LPy  = presetViewBoxY - 2
-        LPz  = presetViewBoxZ - 2
+        GPx = GamePuzzle.total.xv - 2
+        GPy = GamePuzzle.total.yv - 2
+        GPz = GamePuzzle.total.zv - 2
+        LPx  = GamePuzzle.view.xv - 2
+        LPy  = GamePuzzle.view.yv - 2
+        LPz  = GamePuzzle.view.zv - 2
         Cx = GPx
         Cy = GPy
         Cz = GPz
         LabeledBoxes = 0
-        PinkBoxNumber  = (presetViewBoxY - 2)*presetViewBoxX*presetViewBoxZ + (presetViewBoxX - 2)*presetViewBoxZ + (presetViewBoxZ - 1)
+        PinkBoxNumber  = (GamePuzzle.view.yv - 2)*GamePuzzle.view.xz + LPx*GamePuzzle.view.zv + (GamePuzzle.view.zv - 1)
         # the globalization is used to make one data instance for memory purposes
         global hoverover_elementtags, hoverover_texttags, Num_to_Coord
         # and set the type of  these:
@@ -155,7 +217,7 @@ def D3_Minesweeper_Post2(request):
         # get the Large Cube that is the game
         global PointsRecord
         import test4
-        PointsRecord = test4.MakeSweeperGame(presetPuzzleHeight, presetPuzzleWidth, presetPuzzleLength, presetPuzzleMines)
+        PointsRecord = test4.MakeSweeperGame(GamePuzzle.total.yv, GamePuzzle.total.xv, GamePuzzle.total.zv, presetPuzzleMines)
 
         # here is how a hover over works
         # in a style tag you have the following
@@ -171,15 +233,15 @@ def D3_Minesweeper_Post2(request):
 
 
         # an item has 27 points of contact including itself
-        for i in range(presetViewBoxY):
-            for j in range(presetViewBoxX):
-                for k in range(presetViewBoxZ):
+        for i in range(GamePuzzle.view.yv):
+            for j in range(GamePuzzle.view.xv):
+                for k in range(GamePuzzle.view.zv):
                     # dwmio = do when mouse is over
-                    hoverover_elementtags[i*presetViewBoxX*presetViewBoxZ + j*presetViewBoxZ + k + 1] = 'dwmio' + str(i*presetViewBoxX*presetViewBoxZ + j*presetViewBoxZ + k)
+                    hoverover_elementtags[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'dwmio' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
                     # posie is short for position
-                    hoverover_texttags[i*presetViewBoxX*presetViewBoxZ + j*presetViewBoxZ + k + 1] = 'posie' + str(i*presetViewBoxX*presetViewBoxZ + j*presetViewBoxZ + k)
+                    hoverover_texttags[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'posie' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
                     # while running through these numbers it makes a hash to convert from number to coordinate
-                    Num_to_Coord[i*presetViewBoxX*presetViewBoxZ + j*presetViewBoxZ + k + 1] = [j + 2 - presetViewBoxX, i + 2 - presetViewBoxY, k + 2 - presetViewBoxZ]
+                    Num_to_Coord[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = [j + 2 - GamePuzzle.view.xv, i + 2 - GamePuzzle.view.yv, k + 2 - GamePuzzle.view.zv]
         NoZero = True
         while NoZero:
             for i in PointsRecord:
@@ -213,8 +275,8 @@ def D3_Minesweeper_Post2(request):
 
 def D3_Minesweeper_Post1(request):
     
-    global presetPuzzleHeight, presetPuzzleLength, presetPuzzleWidth, presetPuzzleMines, Cx, Cy, Cz, MineHitter
-    global presetViewBoxX, presetViewBoxY, presetViewBoxZ,  GPx, GPy, GPz, LPx, LPy, LPz, PinkBoxNumber
+    global presetPuzzleMines, Cx, Cy, Cz, MineHitter
+    global GPx, GPy, GPz, LPx, LPy, LPz, PinkBoxNumber
     global C1, C2, C3, C4, C5, C6, WidthOfButton, HeightOfButton, FS, LabeledBoxes, AmountOfReleasedBoxes
     global Confirmation, TotalB, Num_to_Coord, hoverover_elementtags, hoverover_texttags, PinkBoxNumber
 
@@ -224,43 +286,38 @@ def D3_Minesweeper_Post1(request):
         error, EnoughInformation = validate.presets_of_type_1(request, "")
 
     if EnoughInformation:
-        global presetPuzzleHeight, presetPuzzleWidth, presetPuzzleLength, presetPuzzleMines
-        presetPuzzleWidth = int(request.form.get('v1'))
-        presetPuzzleHeight = int(request.form.get('v3'))
-        presetPuzzleLength = int(request.form.get('v5'))
+        GamePuzzle.total.set(int(request.form.get('v1')), int(request.form.get('v3')), int(request.form.get('v5')))
+        GamePuzzle.mines = int(request.form.get('v7'))
+        GamePuzzle.view.set(int(request.form.get('v9')), int(request.form.get('v11')), int(request.form.get('v13')))
+
         presetPuzzleMines = int(request.form.get('v7'))
-        presetViewBoxY = int(request.form.get('v9'))
-        presetViewBoxX = int(request.form.get('v11'))
-        presetViewBoxZ = int(request.form.get('v13'))
         MineHitter = 0
         AmountOfReleasedBoxes = 1
         Confirmation = ""
-        TotalB = presetPuzzleHeight*presetPuzzleLength*presetPuzzleWidth
+        TotalB = GamePuzzle.total.xy * GamePuzzle.total.zv
 
-        C1 = 34 - 12/presetViewBoxZ - 12/presetViewBoxX - 12/(presetViewBoxX - 1)
-        C2 = 12/presetViewBoxZ
-        C3 = 12/presetViewBoxX + 12/(presetViewBoxX - 1)
-        C4 = 56 + 24/presetViewBoxY + 24/(presetViewBoxY - 1)
-        C5 = 24/presetViewBoxY
-        C6 = -24/presetViewBoxY - 24/(presetViewBoxY - 1)
+        C1 = 34 - 12/GamePuzzle.view.zv - 12/GamePuzzle.total.xv - 12/(GamePuzzle.total.xv - 1)
+        C2 = 12/GamePuzzle.total.zv
+        C3 = 12/GamePuzzle.total.xv + 12/(GamePuzzle.total.xv - 1)
+        C4 = 56 + 24/GamePuzzle.total.yv + 24/(GamePuzzle.total.yv - 1)
+        C5 = 24/GamePuzzle.total.yv
+        C6 = -24/GamePuzzle.total.yv - 24/(GamePuzzle.total.yv - 1)
 
-        #C1 = 34 - (1/(presetViewBoxZ - 1) + 1/(presetViewBoxX - 1))*(24 - 12/presetViewBoxX)
-
-        WidthOfButton = 12/presetViewBoxX
-        HeightOfButton = 24/presetViewBoxY
-        FS = (60/(presetViewBoxX*presetViewBoxY*presetViewBoxZ)**(1/3))
+        WidthOfButton = 12/GamePuzzle.total.xv
+        HeightOfButton = 24/GamePuzzle.total.yv
+        FS = (60/(GamePuzzle.total.xy*GamePuzzle.total.zv)**(1/3))
         # define the center of the displayed cube:
-        GPx = presetPuzzleWidth - 2
-        GPy = presetPuzzleHeight - 2
-        GPz = presetPuzzleLength - 2
-        LPx  = presetViewBoxX - 2
-        LPy  = presetViewBoxY - 2
-        LPz  = presetViewBoxZ - 2
+        GPx = GamePuzzle.total.xv - 2
+        GPy = GamePuzzle.total.yv - 2
+        GPz = GamePuzzle.total.zv - 2
+        LPx  = GamePuzzle.view.xv - 2
+        LPy  = GamePuzzle.view.yv - 2
+        LPz  = GamePuzzle.view.zv - 2
         Cx = GPx
         Cy = GPy
         Cz = GPz
         LabeledBoxes = 0
-        PinkBoxNumber  = (presetViewBoxY - 2)*presetViewBoxX*presetViewBoxZ + (presetViewBoxX - 2)*presetViewBoxZ + (presetViewBoxZ - 1)
+        PinkBoxNumber  = (GamePuzzle.view.yv - 2)*GamePuzzle.view.xz + LPx*GamePuzzle.view.zv + (GamePuzzle.view.zv - 1)
         # the globalization is used to make one data instance for memory purposes
         global hoverover_elementtags, hoverover_texttags, Num_to_Coord
         # and set the type of  these:
@@ -271,7 +328,7 @@ def D3_Minesweeper_Post1(request):
         # get the Large Cube that is the game
         global PointsRecord
         import test4
-        PointsRecord = test4.MakeSweeperGame(presetPuzzleHeight, presetPuzzleWidth, presetPuzzleLength, presetPuzzleMines)
+        PointsRecord = test4.MakeSweeperGame(GamePuzzle.total.yv, GamePuzzle.total.xv, GamePuzzle.total.zv, presetPuzzleMines)
 
         # here is how a hover over works
         # in a style tag you have the following
@@ -287,15 +344,17 @@ def D3_Minesweeper_Post1(request):
 
 
         # an item has 27 points of contact including itself
-        for i in range(presetViewBoxY):
-            for j in range(presetViewBoxX):
-                for k in range(presetViewBoxZ):
+        for i in range(GamePuzzle.view.yv):
+            for j in range(GamePuzzle.view.xv):
+                for k in range(GamePuzzle.view.zv):
                     # dwmio = do when mouse is over
-                    hoverover_elementtags[i*presetViewBoxX*presetViewBoxZ + j*presetViewBoxZ + k + 1] = 'dwmio' + str(i*presetViewBoxX*presetViewBoxZ + j*presetViewBoxZ + k)
+                    hoverover_elementtags[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'dwmio' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
                     # posie is short for position
-                    hoverover_texttags[i*presetViewBoxX*presetViewBoxZ + j*presetViewBoxZ + k + 1] = 'posie' + str(i*presetViewBoxX*presetViewBoxZ + j*presetViewBoxZ + k)
+                    hoverover_texttags[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'posie' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
                     # while running through these numbers it makes a hash to convert from number to coordinate
-                    Num_to_Coord[i*presetViewBoxX*presetViewBoxZ + j*presetViewBoxZ + k + 1] = [j + 2 - presetViewBoxX, i + 2 - presetViewBoxY, k + 2 - presetViewBoxZ]
+                    Num_to_Coord[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = [j + 2 - GamePuzzle.view.xv, i + 2 - GamePuzzle.view.yv, k + 2 - GamePuzzle.view.v.z]
+ 
+        
         NoZero = True
         while NoZero:
             for i in PointsRecord:
@@ -378,22 +437,24 @@ def D3_Minesweeper():
 @app.route('/Minesweeper_play', methods=['GET', 'POST'])
 def Minesweeper_play():
     global Cx, Cy, Cz, MineHitter, PinkBoxNumber, FS, TotalB
-    global presetViewBoxX, presetViewBoxY, presetViewBoxZ
     global C1, C2, C3, C4, C5, C6, WidthOfButton, HeightOfButton
     global LabeledBoxes, AmountOfReleasedBoxes, Confirmation
-    global PointsRecord, presetPuzzleMines, presetPuzzleHeight
-    global presetPuzzleLength, presetPuzzleWidth, mode, IndexFiles
+    global PointsRecord, presetPuzzleMines, mode, IndexFiles
     global Num_to_Coord, hoverover_elementtags, hoverover_texttags
     global PinkBoxNumber
-    print(IndexFiles[mode])
     if request.method == 'GET':
         if MineHitter < 3:
             return render_template(IndexFiles[mode],
             hoverover_elementtags=hoverover_elementtags,
-            xX = presetPuzzleLength, yY = presetPuzzleHeight, zZ = presetPuzzleWidth,
+            xX = GamePuzzle.total.xv, 
+            yY = GamePuzzle.total.yv, 
+            zZ = GamePuzzle.total.zv,
             hoverover_texttags=hoverover_texttags, TB=TotalB,
             Num_to_Coord=Num_to_Coord, x=Cx, y=Cy, z=Cz, FS=FS, Strikes=MineHitter,
-            MineHitter=MineHitter, px=presetViewBoxX, py=presetViewBoxY, pz=presetViewBoxZ,
+            MineHitter=MineHitter, 
+            px = GamePuzzle.view.xv,
+            py = GamePuzzle.view.yv,
+            pz = GamePuzzle.view.zv,
             PointsRecord=PointsRecord, Available_directions=check_for_direction(Cx, Cy, Cz),
             Pink=PinkBoxNumber, amount_of_directions=len(check_for_direction(Cx, Cy, Cz)),
             c1=C1, c2=C2, c3=C3, c4=C4, c5=C5, c6=C6, wob=WidthOfButton, hob=HeightOfButton,
@@ -437,13 +498,13 @@ def Minesweeper_play():
         elif request.form.get('save'):
             savefile = open('savefile.py', 'w')
             savefile.write("PointsRecord = " + str(PointsRecord) + "\n")
-            savefile.write("presetPuzzleHeight = " + str(presetPuzzleHeight) + "\n")
-            savefile.write("presetPuzzleLength = " + str(presetPuzzleLength) + "\n")
-            savefile.write("presetPuzzleWidth = " + str(presetPuzzleWidth) + "\n")
+            savefile.write("T_H = " + str(GamePuzzle.total.yv) + "\n")
+            savefile.write("T_L = " + str(GamePuzzle.total.zv) + "\n")
+            savefile.write("T_W = " + str(GamePuzzle.total.xv) + "\n")
             savefile.write("presetPuzzleMines = " + str(presetPuzzleMines) + "\n")
-            savefile.write("presetViewBoxX = " + str(presetViewBoxX) + "\n")
-            savefile.write("presetViewBoxY = " + str(presetViewBoxY) + "\n")
-            savefile.write("presetViewBoxZ = " + str(presetViewBoxZ) + "\n")
+            savefile.write("V_X = " + str(GamePuzzle.view.xv) + "\n")
+            savefile.write("V_Y = " + str(GamePuzzle.view.yv) + "\n")
+            savefile.write("V_Z = " + str(GamePuzzle.view.zv) + "\n")
             savefile.write("MineHitter = " + str(MineHitter) + "\n") 
             savefile.write("AmountOfReleasedBoxes = " + str(AmountOfReleasedBoxes) + "\n")
             savefile.write("TotalB  = " + str(TotalB) + "\n")
@@ -462,36 +523,31 @@ def Minesweeper_play():
         elif request.form.get('open'):
             from savefile import PointsRecord as Poi
             PointsRecord = Poi
-            from savefile import presetPuzzleHeight, presetPuzzleWidth,  presetPuzzleLength, presetViewBoxX, presetViewBoxY,  presetViewBoxZ, presetPuzzleMines,  MineHitter
+            from savefile import T_H, T_W, T_L, V_X, V_Y, V_Z, presetPuzzleMines,  MineHitter
             from savefile import AmountOfReleasedBoxes, TotalB, LabeledBoxes, Num_to_Coord, Cx, Cy, Cz, hoverover_elementtags, hoverover_texttags
             from savefile import PinkBoxNumber, WidthOfButton, HeightOfButton
+            GamePuzzle.total.set(T_W, T_H, T_L)
+            GamePuzzle.view.set(V_X, V_Y, V_Z)
             return redirect(url_for('Minesweeper_play'))
         else:
             Confirmation = ""
-            print("6")
             print(request.form)
-            for i in range(presetViewBoxX * presetViewBoxY * presetViewBoxZ):
+            for i in range(GamePuzzle.view.xy*GamePuzzle.view.zv):
                 buttonPressed = i + 1
                 if request.form.get(str(i+1)):
-                    print("7")
                     if PointsRecord[(Cx + Num_to_Coord[buttonPressed][0], Cy + Num_to_Coord[buttonPressed][1], Cz + Num_to_Coord[buttonPressed][2])][1] == 'markable' and request.form.get(str(i+1)) == "  ":
-                        print("1")
                         LabeledBoxes += 1
                         PointsRecord[(Cx + Num_to_Coord[buttonPressed][0], Cy + Num_to_Coord[buttonPressed][1], Cz + Num_to_Coord[buttonPressed][2])][1] = 'marked'
                     elif PointsRecord[(Cx + Num_to_Coord[buttonPressed][0], Cy + Num_to_Coord[buttonPressed][1], Cz + Num_to_Coord[buttonPressed][2])][1] == 'marked' and request.form.get(str(i+1)) == " ":
-                        print("2")
                         LabeledBoxes -= 1
                         PointsRecord[(Cx + Num_to_Coord[buttonPressed][0], Cy + Num_to_Coord[buttonPressed][1], Cz + Num_to_Coord[buttonPressed][2])][1] = 'markable'
                     elif PointsRecord[(Cx + Num_to_Coord[buttonPressed][0], Cy + Num_to_Coord[buttonPressed][1], Cz + Num_to_Coord[buttonPressed][2])][1] == 'markable' and request.form.get(str(i+1)) == " ":
                         if PointsRecord[(Cx + Num_to_Coord[buttonPressed][0], Cy + Num_to_Coord[buttonPressed][1], Cz + Num_to_Coord[buttonPressed][2])][0] == "mine closed":
-                            print("  3")
                             MineHitter += 1
                         elif PointsRecord[(Cx + Num_to_Coord[buttonPressed][0], Cy + Num_to_Coord[buttonPressed][1], Cz + Num_to_Coord[buttonPressed][2])][0] == "block":
-                            print("  4")
                             AmountOfReleasedBoxes += 1
                             PointsRecord[(Cx + Num_to_Coord[buttonPressed][0], Cy + Num_to_Coord[buttonPressed][1], Cz + Num_to_Coord[buttonPressed][2])] = [Check_For_Mines(Cx + Num_to_Coord[buttonPressed][0], Cy + Num_to_Coord[buttonPressed][1], Cz + Num_to_Coord[buttonPressed][2]), 'unmarkable']
                         elif 'cavity' in PointsRecord[(Cx + Num_to_Coord[buttonPressed][0], Cy + Num_to_Coord[buttonPressed][1], Cz + Num_to_Coord[buttonPressed][2])][0]:
-                            print("  5")
                             remove_cavity(PointsRecord[(Cx + Num_to_Coord[buttonPressed][0], Cy + Num_to_Coord[buttonPressed][1], Cz + Num_to_Coord[buttonPressed][2])][0], PointsRecord)
 
 
