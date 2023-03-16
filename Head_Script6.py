@@ -7,9 +7,9 @@ import define
 # the globalization of these variables is to deter the creation of a new variable for the same purpose every function call
 TheMasterList = []
 
-Num_to_Coord = {}
-PointsRecord = {}
-global MODII
+
+
+
 
 # all the variables above have to be put into classes
 
@@ -65,6 +65,8 @@ class Puzzle(object):
         self.death = None
         self.usercenter = PuzzleNode()
         self.pinkboxnumber = None
+        self.ViewCubeCoordTranslate = {}
+        self.AllCubes = {}
 
 
 class Construct(object):
@@ -172,14 +174,14 @@ def Check_For_Mines(PosX, PosY, PosZ):
             x = k - 1
             for j in range(3):
                 z = j - 1
-                if PointsRecord.get((x+PosX,y+PosY, z+PosZ)):
-                    if PointsRecord[(x+PosX,y+PosY, z+PosZ)][0] == "mine closed":
+                if GamePuzzle.AllCubes.get((x+PosX,y+PosY, z+PosZ)):
+                    if GamePuzzle.AllCubes[(x+PosX,y+PosY, z+PosZ)][0] == "mine closed":
                         count += 1
     return count
 
 def ValidateLabels():
-    for i in PointsRecord:
-        if PointsRecord[i][0] == "mine closed" and PointsRecord[i][1] == "marked":
+    for i in GamePuzzle.AllCubes:
+        if GamePuzzle.AllCubes[i][0] == "mine closed" and GamePuzzle.AllCubes[i][1] == "marked":
             GamePuzzle.boxes.unfound_mines
     if GamePuzzle.boxes.unfound_mines == 0:
         return True
@@ -219,16 +221,16 @@ def D3_Minesweeper_Post2(request):
         GamePuzzle.centerLLim.set(GamePuzzle.view.xv - 2, GamePuzzle.view.yv - 2, GamePuzzle.view.zv - 2)
         GamePuzzle.usercenter.set(GamePuzzle.total.xv - 2, GamePuzzle.total.yv - 2, GamePuzzle.total.zv - 2)
         GamePuzzle.boxes.guessed = 0
-        GamePuzzle.pinkboxnumber  = (GamePuzzle.view.yv - 2)*GamePuzzle.view.xz + GamePuzzle.centerLLim.xv*GamePuzzle.view.zv + (GamePuzzle.view.zv - 1)
+        GamePuzzle.pinkboxnumber = (GamePuzzle.view.yv - 2)*GamePuzzle.view.xz + GamePuzzle.centerLLim.xv*GamePuzzle.view.zv + (GamePuzzle.view.zv - 1)
         # the globalization is used to make one data instance for memory purposes
         # and set the type of  these:
 
         GameCaptions.hoverovertext = {}
-        Num_to_Coord = {}
+
 
         # get the Large Cube that is the game
         import test4
-        PointsRecord = test4.MakeSweeperGame(GamePuzzle.total.yv, GamePuzzle.total.xv, GamePuzzle.total.zv, GamePuzzle.boxes.unfound_mines)
+        GamePuzzle.AllCubes = test4.MakeSweeperGame(GamePuzzle.total.yv, GamePuzzle.total.xv, GamePuzzle.total.zv, GamePuzzle.boxes.unfound_mines)
 
         # here is how a hover over works
         # in a style tag you have the following
@@ -251,14 +253,14 @@ def D3_Minesweeper_Post2(request):
                     # posie is short for position
                     GameCaptions.hoverovertext[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'posie' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
                     # while running through these numbers it makes a hash to convert from number to coordinate
-                    Num_to_Coord[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = [j + 2 - GamePuzzle.view.xv, i + 2 - GamePuzzle.view.yv, k + 2 - GamePuzzle.view.zv]
+                    GamePuzzle.ViewCubeCoordTranslate[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = [j + 2 - GamePuzzle.view.xv, i + 2 - GamePuzzle.view.yv, k + 2 - GamePuzzle.view.zv]
         NoZero = True
         while NoZero:
-            for i in PointsRecord:
+            for i in GamePuzzle.AllCubes:
                 if Check_For_Mines(i[0], i[1], i[2]) == 0:
                     NoZero = False
-                    PointsRecord[i][1] = "unmarkable"
-                    PointsRecord[i][0] = 0
+                    GamePuzzle.AllCubes[i][1] = "unmarkable"
+                    GamePuzzle.AllCubes[i][0] = 0
                     tryX, tryY, tryZ = i[0], i[1], i[2]
                     break
         if tryX < GamePuzzle.centerLLim.xv:
@@ -307,12 +309,15 @@ def D3_Minesweeper_Post1(request):
         GameStruct.x.set(
             34 - 12/GamePuzzle.view.zv - 12/GamePuzzle.view.xv - 12/(GamePuzzle.view.xv - 1),
             12/GamePuzzle.view.zv,
-            12/GamePuzzle.view.xv + 12/(GamePuzzle.view.xv - 1))
+            12/GamePuzzle.view.xv + 12/(GamePuzzle.view.xv - 1),
+            GamePuzzle.view.xv
+            )
 
         GameStruct.y.set(
             56 + 24/GamePuzzle.view.yv + 24/(GamePuzzle.view.yv - 1),
             24/GamePuzzle.view.yv,
-            -24/GamePuzzle.view.yv - 24/(GamePuzzle.view.yv - 1))
+            -24/GamePuzzle.view.yv - 24/(GamePuzzle.view.yv - 1),
+            GamePuzzle.view.yv/2)
 
 
         GameStruct.font_size = (60/(GamePuzzle.view.xy*GamePuzzle.view.zv)**(1/3))
@@ -333,11 +338,10 @@ def D3_Minesweeper_Post1(request):
         # and set the type of  these:
         GameCaptions.hoveroverelement = {}
         GameCaptions.hoverovertext = {}
-        Num_to_Coord = {}
 
         # get the Large Cube that is the game
         import test4
-        PointsRecord = test4.MakeSweeperGame(GamePuzzle.total.yv, GamePuzzle.total.xv, GamePuzzle.total.zv, GamePuzzle.boxes.unfound_mines)
+        GamePuzzle.AllCubes = test4.MakeSweeperGame(GamePuzzle.total.yv, GamePuzzle.total.xv, GamePuzzle.total.zv, GamePuzzle.boxes.unfound_mines)
 
         # here is how a hover over works
         # in a style tag you have the following
@@ -361,16 +365,16 @@ def D3_Minesweeper_Post1(request):
                     # posie is short for position
                     GameCaptions.hoverovertext[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'posie' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
                     # while running through these numbers it makes a hash to convert from number to coordinate
-                    Num_to_Coord[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = [j + 2 - GamePuzzle.view.xv, i + 2 - GamePuzzle.view.yv, k + 2 - GamePuzzle.view.zv]
+                    GamePuzzle.ViewCubeCoordTranslate[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = [j + 2 - GamePuzzle.view.xv, i + 2 - GamePuzzle.view.yv, k + 2 - GamePuzzle.view.zv]
  
         
         NoZero = True
         while NoZero:
-            for i in PointsRecord:
+            for i in GamePuzzle.AllCubes:
                 if Check_For_Mines(i[0], i[1], i[2]) == 0:
                     NoZero = False
-                    PointsRecord[i][1] = "unmarkable"
-                    PointsRecord[i][0] = "0"
+                    GamePuzzle.AllCubes[i][1] = "unmarkable"
+                    GamePuzzle.AllCubes[i][0] = "0"
                     tryX, tryY, tryZ = i[0], i[1], i[2]
                     break
         if tryX < GamePuzzle.centerLLim.xv:
@@ -413,7 +417,7 @@ def Modes():
         makes a dictionary attaching the mode number to the necessary web pages
         loops through the modes until 
     """
-    global MODII
+
     modes = 4
     GameSetup.set([{0: "Presets.html", 1: "Presets3.html", 2: "Presets3.html", 3: "Presets3.html"}, 
                    {0: "index5.html", 1: "index7.html", 2: "index8.html", 3: "index9.html"}],
@@ -423,7 +427,7 @@ def Modes():
     else:
         for i in range(modes):
             if request.form.get(str(i)):
-                GameSetup.PresetFile = GameSetup.Matrix[0][i]
+                GameSetup.PresetFile = GameSetup.FileMatrix[0][i]
                 GameSetup.mode = i
     return redirect(url_for('D3_Minesweeper'))
             
@@ -445,21 +449,20 @@ def D3_Minesweeper():
 
 @app.route('/Minesweeper_play', methods=['GET', 'POST'])
 def Minesweeper_play():
-    global MODII
     if request.method == 'GET':
         if GamePuzzle.death < 3:
-            return render_template(GameSetup.Matrix[1][GameSetup.mode],
+            return render_template(GameSetup.FileMatrix[1][GameSetup.mode],
             hoverover_elementtags=GameCaptions.hoveroverelement,
             xX = GamePuzzle.total.xv, 
             yY = GamePuzzle.total.yv, 
             zZ = GamePuzzle.total.zv,
             hoverover_texttags=GameCaptions.hoverovertext, TB=GamePuzzle.total.xy*GamePuzzle.total.zv,
-            Num_to_Coord=Num_to_Coord, x=GamePuzzle.usercenter.xv, y=GamePuzzle.usercenter.yv, z=GamePuzzle.usercenter.zv, FS=GameStruct.font_size, Strikes=GamePuzzle.death,
+            Num_to_Coord=GamePuzzle.ViewCubeCoordTranslate, x=GamePuzzle.usercenter.xv, y=GamePuzzle.usercenter.yv, z=GamePuzzle.usercenter.zv, FS=GameStruct.font_size, Strikes=GamePuzzle.death,
             MineHitter=GamePuzzle.death, 
             px = GamePuzzle.view.xv,
             py = GamePuzzle.view.yv,
             pz = GamePuzzle.view.zv,
-            PointsRecord=PointsRecord, 
+            PointsRecord=GamePuzzle.AllCubes, 
             Available_directions=check_for_direction(GamePuzzle.usercenter.xv, GamePuzzle.usercenter.yv, GamePuzzle.usercenter.zv),
             Pink=GamePuzzle.pinkboxnumber, 
             amount_of_directions=len(check_for_direction(GamePuzzle.usercenter.xv, GamePuzzle.usercenter.yv, GamePuzzle.usercenter.zv)),
@@ -503,7 +506,7 @@ def Minesweeper_play():
                 return redirect(url_for('Minesweeper_play'))
         elif request.form.get('save'):
             savefile = open('savefile.py', 'w')
-            savefile.write("PointsRecord = " + str(PointsRecord) + "\n")
+            savefile.write("PointsRecord = " + str(GamePuzzle.AllCubes) + "\n")
             savefile.write("T_H = " + str(GamePuzzle.total.yv) + "\n")
             savefile.write("T_L = " + str(GamePuzzle.total.zv) + "\n")
             savefile.write("T_W = " + str(GamePuzzle.total.xv) + "\n")
@@ -514,7 +517,8 @@ def Minesweeper_play():
             savefile.write("MineHitter = " + str(GamePuzzle.death) + "\n") 
             savefile.write("AmountOfReleasedBoxes = " + str(GamePuzzle.boxes.open) + "\n")
             savefile.write("LabeledBoxes = " + str(GamePuzzle.boxes.guessed) + "\n")
-            savefile.write("Num_to_Coord = " + str(Num_to_Coord) + "\n")
+            savefile.write(f"mode = {GameSetup.mode}")
+            savefile.write("Num_to_Coord = " + str(GamePuzzle.ViewCubeCoordTranslate) + "\n")
             savefile.write("Cx = " + str(GamePuzzle.usercenter.xv) + "\n")
             savefile.write("Cy = " + str(GamePuzzle.usercenter.yv) + "\n")
             savefile.write("Cz = " + str(GamePuzzle.usercenter.zv) + "\n")
@@ -535,16 +539,16 @@ def Minesweeper_play():
             savefile.write(f"C4 = {GameStruct.y.base}\n")
             savefile.write(f"C5 = {GameStruct.y.Zchange}\n")
             savefile.write(f"C6 = {GameStruct.y.self_change}\n")
-            savefile.write(f"Confirmation = {GameCaptions.confirmation}\n")
+            savefile.write(f"Confirmation = '{GameCaptions.confirmation}'\n")
             savefile.close()
             return redirect(url_for('Minesweeper_play'))
         elif request.form.get('open'):
             from savefile import PointsRecord as Poi
-            PointsRecord = Poi
+            GamePuzzle.AllCubes = Poi
             from savefile import T_H, T_W, T_L, V_X, V_Y, V_Z, P_M, C1, C2, C3, C4, C5, C6, MineHitter
             from savefile import AmountOfReleasedBoxes, LabeledBoxes, Num_to_Coord, Cx, Cy, Cz, hoverover_elementtags, hoverover_texttags
             from savefile import PinkBoxNumber, WidthOfButton, HeightOfButton, Confirmation
-            from savefile import GLX, GLY, GLZ, LLX, LLY, LLZ
+            from savefile import GLX, GLY, GLZ, LLX, LLY, LLZ, mode
             GamePuzzle.total.set(T_W, T_H, T_L)
             GamePuzzle.view.set(V_X, V_Y, V_Z)
             GamePuzzle.centerGLim.set(GLX, GLY, GLZ)
@@ -560,6 +564,8 @@ def Minesweeper_play():
             GameCaptions.confirmation = Confirmation
             GameCaptions.hoveroverelement = hoverover_elementtags
             GameCaptions.hoverovertext = hoverover_texttags
+            GamePuzzle.ViewCubeCoordTranslate =  Num_to_Coord
+            GameSetup.mode = mode
             return redirect(url_for('Minesweeper_play'))
         else:
             GameCaptions.confirmation = ""
@@ -567,20 +573,20 @@ def Minesweeper_play():
             for i in range(GamePuzzle.view.xy*GamePuzzle.view.zv):
                 buttonPressed = i + 1
                 if request.form.get(str(i+1)):
-                    if PointsRecord[(GamePuzzle.usercenter.xv + Num_to_Coord[buttonPressed][0], GamePuzzle.usercenter.yv + Num_to_Coord[buttonPressed][1], GamePuzzle.usercenter.zv + Num_to_Coord[buttonPressed][2])][1] == 'markable' and request.form.get(str(i+1)) == "  ":
+                    if GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] == 'markable' and request.form.get(str(i+1)) == "  ":
                         GamePuzzle.boxes.guessed += 1
-                        PointsRecord[(GamePuzzle.usercenter.xv + Num_to_Coord[buttonPressed][0], GamePuzzle.usercenter.yv + Num_to_Coord[buttonPressed][1], GamePuzzle.usercenter.zv + Num_to_Coord[buttonPressed][2])][1] = 'marked'
-                    elif PointsRecord[(GamePuzzle.usercenter.xv + Num_to_Coord[buttonPressed][0], GamePuzzle.usercenter.yv + Num_to_Coord[buttonPressed][1], GamePuzzle.usercenter.zv + Num_to_Coord[buttonPressed][2])][1] == 'marked' and request.form.get(str(i+1)) == " ":
+                        GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] = 'marked'
+                    elif GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] == 'marked' and request.form.get(str(i+1)) == " ":
                         GamePuzzle.boxes.guessed -= 1
-                        PointsRecord[(GamePuzzle.usercenter.xv + Num_to_Coord[buttonPressed][0], GamePuzzle.usercenter.yv + Num_to_Coord[buttonPressed][1], GamePuzzle.usercenter.zv + Num_to_Coord[buttonPressed][2])][1] = 'markable'
-                    elif PointsRecord[(GamePuzzle.usercenter.xv + Num_to_Coord[buttonPressed][0], GamePuzzle.usercenter.yv + Num_to_Coord[buttonPressed][1], GamePuzzle.usercenter.zv + Num_to_Coord[buttonPressed][2])][1] == 'markable' and request.form.get(str(i+1)) == " ":
-                        if PointsRecord[(GamePuzzle.usercenter.xv + Num_to_Coord[buttonPressed][0], GamePuzzle.usercenter.yv + Num_to_Coord[buttonPressed][1], GamePuzzle.usercenter.zv + Num_to_Coord[buttonPressed][2])][0] == "mine closed":
+                        GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] = 'markable'
+                    elif GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] == 'markable' and request.form.get(str(i+1)) == " ":
+                        if GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0] == "mine closed":
                             GamePuzzle.death += 1
-                        elif PointsRecord[(GamePuzzle.usercenter.xv + Num_to_Coord[buttonPressed][0], GamePuzzle.usercenter.yv + Num_to_Coord[buttonPressed][1], GamePuzzle.usercenter.zv + Num_to_Coord[buttonPressed][2])][0] == "block":
+                        elif GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0] == "block":
                             GamePuzzle.boxes.open += 1
-                            PointsRecord[(GamePuzzle.usercenter.xv + Num_to_Coord[buttonPressed][0], GamePuzzle.usercenter.yv + Num_to_Coord[buttonPressed][1], GamePuzzle.usercenter.zv + Num_to_Coord[buttonPressed][2])] = [Check_For_Mines(GamePuzzle.usercenter.xv + Num_to_Coord[buttonPressed][0], GamePuzzle.usercenter.yv + Num_to_Coord[buttonPressed][1], GamePuzzle.usercenter.zv + Num_to_Coord[buttonPressed][2]), 'unmarkable']
-                        elif 'cavity' in PointsRecord[(GamePuzzle.usercenter.xv + Num_to_Coord[buttonPressed][0], GamePuzzle.usercenter.yv + Num_to_Coord[buttonPressed][1], GamePuzzle.usercenter.zv + Num_to_Coord[buttonPressed][2])][0]:
-                            remove_cavity(PointsRecord[(GamePuzzle.usercenter.xv + Num_to_Coord[buttonPressed][0], GamePuzzle.usercenter.yv + Num_to_Coord[buttonPressed][1], GamePuzzle.usercenter.zv + Num_to_Coord[buttonPressed][2])][0], PointsRecord)
+                            GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])] = [Check_For_Mines(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2]), 'unmarkable']
+                        elif 'cavity' in GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0]:
+                            remove_cavity(GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0], GamePuzzle.AllCubes)
 
 
         return redirect(url_for('Minesweeper_play'))
