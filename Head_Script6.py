@@ -189,224 +189,36 @@ def ValidateLabels():
         return False
 
 def D3_Minesweeper_Post2(request):
+    # the request for only a 3 x 3 x 3 box
     GameSetup.EnoughInformation = True
     if request.form.get('v14'):
+        # check to see if all the information being received from the preset page is valid
         GameSetup.error, GameSetup.EnoughInformation = validate.presets_of_type_2(request, "")
 
     if GameSetup.EnoughInformation:
-        GamePuzzle.total.set(int(request.form.get('v1')), int(request.form.get('v3')), int(request.form.get('v5')))
-        GamePuzzle.boxes.set(0, GamePuzzle.total.xy*GamePuzzle.total.zv - int(request.form.get('v7')), int(request.form.get('v7')), 0)
-        GamePuzzle.view.set(3, 3, 3)
-        GamePuzzle.death = 0
-
-        GamePuzzle.boxes.open = 1
-        GameCaptions.confirmation = ""
-        GameStruct.x.set(
-            34 - 12/GamePuzzle.view.zv - 12/GamePuzzle.view.xv - 12/(GamePuzzle.view.xv - 1),
-            12/GamePuzzle.view.zv,
-            12/GamePuzzle.view.xv + 12/(GamePuzzle.view.xv - 1),
-            GamePuzzle.view.xv)
-
-        GameStruct.y.set(
-            56 + 24/GamePuzzle.view.yv + 24/(GamePuzzle.view.yv - 1),
-            24/GamePuzzle.view.yv,
-            -24/GamePuzzle.view.yv - 24/(GamePuzzle.view.yv - 1),
-            GamePuzzle.view.yv/2)
-
-        #C1 = 34 - (1/(presetViewBoxZ - 1) + 1/(presetViewBoxX - 1))*(24 - 12/presetViewBoxX)
-
-        GameStruct.font_size = (60/(GamePuzzle.view.zy * GamePuzzle.view.xv)**(1/3))
-        # define the center of the displayed cube:
-        GamePuzzle.centerGLim.set(GamePuzzle.total.xv - 2, GamePuzzle.total.yv - 2, GamePuzzle.total.zv - 2)
-        GamePuzzle.centerLLim.set(GamePuzzle.view.xv - 2, GamePuzzle.view.yv - 2, GamePuzzle.view.zv - 2)
-        GamePuzzle.usercenter.set(GamePuzzle.total.xv - 2, GamePuzzle.total.yv - 2, GamePuzzle.total.zv - 2)
-        GamePuzzle.boxes.guessed = 0
-        GamePuzzle.pinkboxnumber = (GamePuzzle.view.yv - 2)*GamePuzzle.view.xz + GamePuzzle.centerLLim.xv*GamePuzzle.view.zv + (GamePuzzle.view.zv - 1)
-        # the globalization is used to make one data instance for memory purposes
-        # and set the type of  these:
-
-        GameCaptions.hoverovertext = {}
-
-
-        # get the Large Cube that is the game
-        import test4
-        GamePuzzle.AllCubes = test4.MakeSweeperGame(GamePuzzle.total.yv, GamePuzzle.total.xv, GamePuzzle.total.zv, GamePuzzle.boxes.unfound_mines)
-
-        # here is how a hover over works
-        # in a style tag you have the following
-        # a div CLASSNAME that has a display: block; attribute
-        # a CLASSNAME2.caption that sets attributes of the hover over text
-        # a div CLASSNAME:hover + CLASSNAME2 that indicates other attributes of the hover over text
-        # 
-        # now you are out of the style tag
-        # in the div class=block tag you put your two custom tags CLASSNAME and CLASSNAME2
-        # in the CLASSNAME tag you put your elements
-        # and in the CLASSNAME2 tag you put the hover over text
-
-
-        # an item has 27 points of contact including itself
-        for i in range(GamePuzzle.view.yv):
-            for j in range(GamePuzzle.view.xv):
-                for k in range(GamePuzzle.view.zv):
-                    # dwmio = do when mouse is over
-                    GameCaptions.hoveroverelement[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'dwmio' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
-                    # posie is short for position
-                    GameCaptions.hoverovertext[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'posie' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
-                    # while running through these numbers it makes a hash to convert from number to coordinate
-                    GamePuzzle.ViewCubeCoordTranslate[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = [j + 2 - GamePuzzle.view.xv, i + 2 - GamePuzzle.view.yv, k + 2 - GamePuzzle.view.zv]
-        NoZero = True
-        while NoZero:
-            for i in GamePuzzle.AllCubes:
-                if Check_For_Mines(i[0], i[1], i[2]) == 0:
-                    NoZero = False
-                    GamePuzzle.AllCubes[i][1] = "unmarkable"
-                    GamePuzzle.AllCubes[i][0] = 0
-                    tryX, tryY, tryZ = i[0], i[1], i[2]
-                    break
-        if tryX < GamePuzzle.centerLLim.xv:
-            GamePuzzle.usercenter.xv = GamePuzzle.centerLLim.xv
-        elif tryX > GamePuzzle.centerGLim.xv:
-            GamePuzzle.usercenter.xv = GamePuzzle.centerGLim.xv
-        else:
-            GamePuzzle.usercenter.xv = tryX
-        if tryY < GamePuzzle.centerLLim.yv:
-            GamePuzzle.usercenter.yv = GamePuzzle.centerLLim.yv
-        elif tryY > GamePuzzle.centerGLim.yv:
-            GamePuzzle.usercenter.yv = GamePuzzle.centerGLim.yv
-        else:
-            GamePuzzle.usercenter.yv = tryY
-        if tryZ < GamePuzzle.centerLLim.zv:
-            GamePuzzle.usercenter.zv = GamePuzzle.centerLLim.zv
-        elif tryZ > GamePuzzle.centerGLim.zv:
-            GamePuzzle.usercenter.zv = GamePuzzle.centerGLim.zv
-        else:
-            GamePuzzle.usercenter.zv = tryZ
+         # if it is then send it to define to calculate the correct data components of the game
+        define.Stats(GamePuzzle, GameStruct, GameCaptions, "cubic", request)
         return redirect(url_for('Minesweeper_play'))
     else:
+        # otherwise skip back to the preset entering page
         return render_template(GameSetup.PresetFile, error=GameSetup.error)
 
 def D3_Minesweeper_Post1(request):
-    
-
-
-
+    # the request for an irregular box
     GameSetup.EnoughInformation = True
     if request.form.get('v14'):
         import validate
+
+        # check to see if all the information being received from the preset page is valid
         GameSetup.error, GameSetup.EnoughInformation = validate.presets_of_type_1(request, "")
 
     if GameSetup.EnoughInformation:
-        GamePuzzle.total.set(int(request.form.get('v1')), int(request.form.get('v3')), int(request.form.get('v5')))
-        GamePuzzle.boxes.unfound_mines = int(request.form.get('v7'))
-        GamePuzzle.view.set(int(request.form.get('v9')), int(request.form.get('v11')), int(request.form.get('v13')))
-
-        GamePuzzle.boxes.unfound_mines = int(request.form.get('v7'))
-        GamePuzzle.death = 0
-
-        GamePuzzle.boxes.open = 1
-        GameCaptions.confirmation = ""
-
-        GameStruct.x.set(
-            34 - 12/GamePuzzle.view.zv - 12/GamePuzzle.view.xv - 12/(GamePuzzle.view.xv - 1),
-            12/GamePuzzle.view.zv,
-            12/GamePuzzle.view.xv + 12/(GamePuzzle.view.xv - 1),
-            GamePuzzle.view.xv
-            )
-
-        GameStruct.y.set(
-            56 + 24/GamePuzzle.view.yv + 24/(GamePuzzle.view.yv - 1),
-            24/GamePuzzle.view.yv,
-            -24/GamePuzzle.view.yv - 24/(GamePuzzle.view.yv - 1),
-            GamePuzzle.view.yv/2)
-
-
-        GameStruct.font_size = (60/(GamePuzzle.view.xy*GamePuzzle.view.zv)**(1/3))
-        # define the center of the displayed cube:
-        GamePuzzle.centerGLim.xv = GamePuzzle.total.xv - 2
-        GamePuzzle.centerGLim.yv = GamePuzzle.total.yv - 2
-        GamePuzzle.centerGLim.zv = GamePuzzle.total.zv - 2
-        GamePuzzle.centerLLim.xv  = GamePuzzle.view.xv - 2
-        GamePuzzle.centerLLim.yv  = GamePuzzle.view.yv - 2
-        GamePuzzle.centerLLim.zv  = GamePuzzle.view.zv - 2
-        GamePuzzle.usercenter.xv = GamePuzzle.centerGLim.xv
-        GamePuzzle.usercenter.yv = GamePuzzle.centerGLim.yv
-        GamePuzzle.usercenter.zv = GamePuzzle.centerGLim.zv
-        GamePuzzle.boxes.guessed = 0
-        GamePuzzle.pinkboxnumber  = (GamePuzzle.view.yv - 2)*GamePuzzle.view.xz + GamePuzzle.centerLLim.xv*GamePuzzle.view.zv + (GamePuzzle.view.zv - 1)
-
-        # the globalization is used to make one data instance for memory purposes
-        # and set the type of  these:
-        GameCaptions.hoveroverelement = {}
-        GameCaptions.hoverovertext = {}
-
-        # get the Large Cube that is the game
-        import test4
-        GamePuzzle.AllCubes = test4.MakeSweeperGame(GamePuzzle.total.yv, GamePuzzle.total.xv, GamePuzzle.total.zv, GamePuzzle.boxes.unfound_mines)
-
-        # here is how a hover over works
-        # in a style tag you have the following
-        # a div CLASSNAME that has a display: block; attribute
-        # a CLASSNAME2.caption that sets attributes of the hover over text
-        # a div CLASSNAME:hover + CLASSNAME2 that indicates other attributes of the hover over text
-        # 
-        # now you are out of the style tag
-        # in the div class=block tag you put your two custom tags CLASSNAME and CLASSNAME2
-        # in the CLASSNAME tag you put your elements
-        # and in the CLASSNAME2 tag you put the hover over text
-
-
-
-        # an item has 27 points of contact including itself
-        for i in range(GamePuzzle.view.yv):
-            for j in range(GamePuzzle.view.xv):
-                for k in range(GamePuzzle.view.zv):
-                    # dwmio = do when mouse is over
-                    GameCaptions.hoveroverelement[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'dwmio' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
-                    # posie is short for position
-                    GameCaptions.hoverovertext[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = 'posie' + str(i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k)
-                    # while running through these numbers it makes a hash to convert from number to coordinate
-                    GamePuzzle.ViewCubeCoordTranslate[i*GamePuzzle.view.xz + j*GamePuzzle.view.zv + k + 1] = [j + 2 - GamePuzzle.view.xv, i + 2 - GamePuzzle.view.yv, k + 2 - GamePuzzle.view.zv]
- 
-        
-        NoZero = True
-        while NoZero:
-            for i in GamePuzzle.AllCubes:
-                if Check_For_Mines(i[0], i[1], i[2]) == 0:
-                    NoZero = False
-                    GamePuzzle.AllCubes[i][1] = "unmarkable"
-                    GamePuzzle.AllCubes[i][0] = "0"
-                    tryX, tryY, tryZ = i[0], i[1], i[2]
-                    break
-        if tryX < GamePuzzle.centerLLim.xv:
-            GamePuzzle.usercenter.xv = GamePuzzle.centerLLim.xv
-        elif tryX > GamePuzzle.centerGLim.xv:
-            GamePuzzle.usercenter.xv = GamePuzzle.centerGLim.xv
-        else:
-            GamePuzzle.usercenter.xv = tryX
-        if tryY < GamePuzzle.centerLLim.yv:
-            GamePuzzle.usercenter.yv = GamePuzzle.centerLLim.yv
-        elif tryY > GamePuzzle.centerGLim.yv:
-            GamePuzzle.usercenter.yv = GamePuzzle.centerGLim.yv
-        else:
-            GamePuzzle.usercenter.yv = tryY
-        if tryZ < GamePuzzle.centerLLim.zv:
-            GamePuzzle.usercenter.zv = GamePuzzle.centerLLim.zv
-        elif tryZ > GamePuzzle.centerGLim.zv:
-            GamePuzzle.usercenter.zv = GamePuzzle.centerGLim.zv
-        else:
-            GamePuzzle.usercenter.zv = tryZ
+        # if it is then send it to define to calculate the correct data components of the game
+        define.Stats(GamePuzzle, GameStruct, GameCaptions, "exotic", request)
         return redirect(url_for('Minesweeper_play'))
     else:
-        
+        # otherwise skip back to the preset entering page
         return render_template(GameSetup.PresetFile, error=GameSetup.error)
-
-
-
-
-
-
-
-
 
 app = Flask(__name__)
 
@@ -591,9 +403,6 @@ def Minesweeper_play():
 
         return redirect(url_for('Minesweeper_play'))
        
- 
-
-
 
 
 app.secret_key = 'oetc2802w?ih,i!MkdC>IC.l?<IH'
