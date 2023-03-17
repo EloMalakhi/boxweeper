@@ -4,94 +4,11 @@ from flask import Flask, session, redirect, render_template, request, abort, esc
 import re
 import validate
 import define
-# the globalization of these variables is to deter the creation of a new variable for the same purpose every function call
-TheMasterList = []
+from CaptionClass import Caption
+from PuzzleClass import Puzzle
+from SetupClass import Setup
+from ConstructClass import Construct
 
-
-
-
-
-# all the variables above have to be put into classes
-
-
-class PuzzleNode(object):
-    def __init__(self):
-        pass
-
-    def set(self, x, y, z):
-        self.xv = x
-        self.yv = y
-        self.zv = z
-        self.xx = x*x
-        self.xy = x*y
-        self.xz = x*z
-        self.yx = y*x
-        self.yy = y*y
-        self.yz = y*z
-        self.zx = z*x
-        self.zy = z*y
-        self.zz = z*z
-        
-class BoxNode(object):
-    def __init__(self):
-        self.open = None
-        self.closed = None
-        self.unfound_mines =  None
-        self.found_mines = None
-
-    def set(self, open, closed, unfound, found):
-        self.open  = open
-        self.closed = closed
-        self.unfound_mines = unfound
-        self.guessed = found
-
-class ConstructNode(object):
-    def __init__(self):
-        pass
-
-    def set(self, base, changeByZ, changeByItself, viewDim):
-        self.base = base
-        self.Zchange = changeByZ
-        self.self_change = changeByItself
-        self.ob = 12/viewDim
-
-class Puzzle(object):
-    def __init__(self):
-        self.total = PuzzleNode()
-        self.view = PuzzleNode()
-        self.centerLLim = PuzzleNode()
-        self.centerGLim = PuzzleNode()
-        self.boxes = BoxNode()
-        self.death = None
-        self.usercenter = PuzzleNode()
-        self.pinkboxnumber = None
-        self.ViewCubeCoordTranslate = {}
-        self.AllCubes = {}
-
-
-class Construct(object):
-    def __init__(self):
-        self.x = ConstructNode()
-        self.y = ConstructNode()
-        self.font_size = None
-
-class Caption(object):
-    def __init__(self):
-        self.confirmation = None
-        self.hoveroverelement = {}
-        self.hoverovertext = {}
-
-class Setup(object):
-    def __init(self):
-        pass
-
-    def set(self, Matrix, error, EnoughInformation, pf, IF, mode):
-        self.FileMatrix = Matrix
-        self.error = error
-        self.EnoughInformation = EnoughInformation
-        self.PresetFile = pf
-        self.indexFile = IF
-        self.mode = mode
 
 GamePuzzle = Puzzle()
 GameStruct = Construct()
