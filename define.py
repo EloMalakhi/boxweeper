@@ -42,7 +42,6 @@ def Stats(Puzzle, Struct, Captions, caller, request):
     # get the Large Cube that is the 
     import test4
     Puzzle.AllCubes = test4.MakeSweeperGame(Puzzle.total.yv, Puzzle.total.xv, Puzzle.total.zv, Puzzle.boxes.unfound_mines)
-
     # here is how a hover over works
     # in a style tag you have the following
     # a div CLASSNAME that has a display: block; attribute
@@ -69,7 +68,7 @@ def Stats(Puzzle, Struct, Captions, caller, request):
     NoZero = True
     while NoZero:
         for i in Puzzle.AllCubes:
-            if Check_For_Mines(i[0], i[1], i[2]) == 0:
+            if Check_For_Mines(i[0], i[1], i[2], Puzzle) == 0:
                 NoZero = False
                 Puzzle.AllCubes[i][1] = "unmarkable"
                 Puzzle.AllCubes[i][0] = "0"
