@@ -9,7 +9,6 @@ from PuzzleClass import Puzzle
 from SetupClass import Setup
 from ConstructClass import Construct
 
-
 GamePuzzle = Puzzle()
 GameStruct = Construct()
 GameCaptions = Caption()
@@ -83,7 +82,7 @@ def remove_cavity(Cavity_for_removal, PointsRecord):
             PointsRecord[i] = [" ", "unmarkable"]
             GamePuzzle.boxes.open += 1
 
-def Check_For_Mines(PosX, PosY, PosZ):
+def Check_For_Mines(PosX, PosY, PosZ, GamePuzzle):
     count = 0
     for i in range(3):
         y = i - 1
@@ -91,8 +90,8 @@ def Check_For_Mines(PosX, PosY, PosZ):
             x = k - 1
             for j in range(3):
                 z = j - 1
-                if GamePuzzle.AllCubes.get((x+PosX,y+PosY, z+PosZ)):
-                    if GamePuzzle.AllCubes[(x+PosX,y+PosY, z+PosZ)][0] == "mine closed":
+                if GamePuzzle.AllCubes.get((x+PosX, y+PosY, z+PosZ)):
+                    if GamePuzzle.AllCubes[(x+PosX, y+PosY, z+PosZ)][0] == "mine closed":
                         count += 1
     return count
 
@@ -180,6 +179,7 @@ def D3_Minesweeper():
 def Minesweeper_play():
     if request.method == 'GET':
         if GamePuzzle.death < 3:
+            print("a")
             return render_template(GameSetup.FileMatrix[1][GameSetup.mode],
             hoverover_elementtags=GameCaptions.hoveroverelement,
             xX = GamePuzzle.total.xv, 
@@ -298,7 +298,6 @@ def Minesweeper_play():
             return redirect(url_for('Minesweeper_play'))
         else:
             GameCaptions.confirmation = ""
-            print(request.form)
             for i in range(GamePuzzle.view.xy*GamePuzzle.view.zv):
                 buttonPressed = i + 1
                 if request.form.get(str(i+1)):
@@ -310,10 +309,11 @@ def Minesweeper_play():
                         GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] = 'markable'
                     elif GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] == 'markable' and request.form.get(str(i+1)) == " ":
                         if GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0] == "mine closed":
+                            print(GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])])
                             GamePuzzle.death += 1
                         elif GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0] == "block":
                             GamePuzzle.boxes.open += 1
-                            GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])] = [Check_For_Mines(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2]), 'unmarkable']
+                            GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])] = [Check_For_Mines(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2], GamePuzzle), 'unmarkable']
                         elif 'cavity' in GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0]:
                             remove_cavity(GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0], GamePuzzle.AllCubes)
 
@@ -325,4 +325,6 @@ def Minesweeper_play():
 app.secret_key = 'oetc2802w?ih,i!MkdC>IC.l?<IH'
 if __name__ == "__main__":
     app.run(port=4500)
+
+# 328 lines
 
