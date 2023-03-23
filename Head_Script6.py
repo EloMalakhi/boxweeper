@@ -4,15 +4,15 @@ from flask import Flask, session, redirect, render_template, request, abort, esc
 import re
 import validate
 import define
-from CaptionClass import Caption
-from PuzzleClass import Puzzle
-from SetupClass import Setup
-from ConstructClass import Construct
+from saves.CaptionClass import Caption
+from saves.PuzzleClass import Puzzle
+from saves.SetupClass import Setup
+from saves.ConstructClass import Construct
+from call import call_html_form
+global GameSetup, GamePuzzle, GameStruct, GameCaptions
 
-GamePuzzle = Puzzle()
-GameStruct = Construct()
-GameCaptions = Caption()
-GameSetup = Setup()
+
+
 # presetPuzzleHeight, presetPuzzleLength, presetPuzzleWidth define the total scope of the height, length, and width of the puzzle
 
 # presetViewBoxX, presetViewBoxY, presetViewBoxZ define the viewed scope of the puzzle
@@ -22,33 +22,6 @@ GameSetup = Setup()
 # box will be colored pink
 
 # C1 - C6 are constants calculated before the calling of the web pages and used to assist flask in correctly spacing the buttons in the index html files
-
-
-
-
-
-def check_for_direction(Cx, Cy, Cz):
-    List = {}
-    count = -1
-    if Cx > GamePuzzle.centerLLim.xv:
-        count += 1
-        List[count] = 'left'
-    if Cx < GamePuzzle.centerGLim.xv:
-        count += 1
-        List[count] = 'right'
-    if Cy > GamePuzzle.centerLLim.yv:
-        count += 1
-        List[count] = 'down'
-    if Cy < GamePuzzle.centerGLim.yv:
-        count += 1
-        List[count] = 'up'
-    if Cz > GamePuzzle.centerLLim.zv:
-        count += 1
-        List[count] = 'backward'
-    if Cz < GamePuzzle.centerGLim.zv:
-        count += 1
-        List[count] = 'forward'
-    return List
 
 def check_in_bounds(x, y, z):
     TorF = False
@@ -140,35 +113,48 @@ app = Flask(__name__)
 
 #  these three lines are the home page of the game
 @app.route('/', methods=['GET', 'POST'])
-def Modes():
+def Modes(): # 18 lines
+    global GamePuzzle,  GameStruct, GameCaptions, GameSetup
     """ defines the amount of playable modes
         makes a dictionary attaching the mode number to the necessary web pages
         loops through the modes until 
     """
-
     modes = 4
-    GameSetup.set([{0: "Presets.html", 1: "Presets3.html", 2: "Presets3.html", 3: "Presets3.html"}, 
-                   {0: "index5.html", 1: "index7.html", 2: "index8.html", 3: "index9.html"}],
-                   "", "", "", "", 0)
+    
     if request.method == 'GET':
         return render_template('Modes.html', modes=modes)
     else:
-        for i in range(modes):
-            if request.form.get(str(i)):
-                GameSetup.PresetFile = GameSetup.FileMatrix[0][i]
-                GameSetup.mode = i
+        if request.form.get("open"):
+            from saves.puzzle import GamePuzzle as savedPU
+            GamePuzzle = savedPU
+            from saves.struct import GameStruct  as savedST
+            GameStruct = savedST
+            from saves.captions import GameCaptions as savedCA
+            GameCaptions = savedCA
+            from saves.setup import GameSetup as savedSE
+            GameSetup = savedSE
+            return redirect(url_for('Minesweeper_play'))
+        else:
+            GamePuzzle = Puzzle()
+            GameStruct = Construct()
+            GameCaptions = Caption()
+            GameSetup = Setup()
+            GameSetup.set([{0: "Presets.html", 1: "Presets3.html", 2: "Presets3.html", 3: "Presets3.html"}, 
+            {0: "index5.html", 1: "index7.html", 2: "index8.html", 3: "index9.html"}], "", "", "", "", 0)
+            for i in range(modes):
+                if request.form.get(str(i)):
+                    GameSetup.PresetFile = GameSetup.FileMatrix[0][i]
+                    GameSetup.mode = i
     return redirect(url_for('D3_Minesweeper'))
             
 
 @app.route('/D3_Minesweeper', methods=['GET', 'POST'])
-def D3_Minesweeper():
+def D3_Minesweeper(): # 11 lines
     global mode
     if request.method == 'GET':
         return render_template(GameSetup.PresetFile)
     else:
-        
         if GameSetup.mode == 0:
-            
             return D3_Minesweeper_Post1(request)
         else:
             return D3_Minesweeper_Post2(request)
@@ -176,28 +162,10 @@ def D3_Minesweeper():
 # this is where everything happens
 
 @app.route('/Minesweeper_play', methods=['GET', 'POST'])
-def Minesweeper_play():
+def Minesweeper_play(): # 92 lines
     if request.method == 'GET':
         if GamePuzzle.death < 3:
-            print("a")
-            return render_template(GameSetup.FileMatrix[1][GameSetup.mode],
-            hoverover_elementtags=GameCaptions.hoveroverelement,
-            xX = GamePuzzle.total.xv, 
-            yY = GamePuzzle.total.yv, 
-            zZ = GamePuzzle.total.zv,
-            hoverover_texttags=GameCaptions.hoverovertext, TB=GamePuzzle.total.xy*GamePuzzle.total.zv,
-            Num_to_Coord=GamePuzzle.ViewCubeCoordTranslate, x=GamePuzzle.usercenter.xv, y=GamePuzzle.usercenter.yv, z=GamePuzzle.usercenter.zv, FS=GameStruct.font_size, Strikes=GamePuzzle.death,
-            MineHitter=GamePuzzle.death, 
-            px = GamePuzzle.view.xv,
-            py = GamePuzzle.view.yv,
-            pz = GamePuzzle.view.zv,
-            PointsRecord=GamePuzzle.AllCubes, 
-            Available_directions=check_for_direction(GamePuzzle.usercenter.xv, GamePuzzle.usercenter.yv, GamePuzzle.usercenter.zv),
-            Pink=GamePuzzle.pinkboxnumber, 
-            amount_of_directions=len(check_for_direction(GamePuzzle.usercenter.xv, GamePuzzle.usercenter.yv, GamePuzzle.usercenter.zv)),
-            c1=GameStruct.x.base, c2=GameStruct.x.Zchange, c3=GameStruct.x.self_change, c4=GameStruct.y.base, c5=GameStruct.y.Zchange, c6=GameStruct.y.self_change,
-            wob=GameStruct.x.ob, hob=GameStruct.y.ob,
-            MM=GamePuzzle.boxes.unfound_mines, LL=GamePuzzle.boxes.guessed, RB=GamePuzzle.boxes.open, CF=GameCaptions.confirmation)
+            return call_html_form(GameSetup, GameCaptions, GamePuzzle, GameStruct)
         else:
             return render_template('MinesweeperDeath.html')
     else:
@@ -234,68 +202,20 @@ def Minesweeper_play():
                 GameCaptions.confirmation = "You didn't get all of them yet, keep trying!"
                 return redirect(url_for('Minesweeper_play'))
         elif request.form.get('save'):
-            savefile = open('savefile.py', 'w')
-            savefile.write("PointsRecord = " + str(GamePuzzle.AllCubes) + "\n")
-            savefile.write("T_H = " + str(GamePuzzle.total.yv) + "\n")
-            savefile.write("T_L = " + str(GamePuzzle.total.zv) + "\n")
-            savefile.write("T_W = " + str(GamePuzzle.total.xv) + "\n")
-            savefile.write("V_X = " + str(GamePuzzle.view.xv) + "\n")
-            savefile.write("V_Y = " + str(GamePuzzle.view.yv) + "\n")
-            savefile.write("V_Z = " + str(GamePuzzle.view.zv) + "\n")
-            savefile.write(f"P_M = {GamePuzzle.boxes.unfound_mines}\n")
-            savefile.write("MineHitter = " + str(GamePuzzle.death) + "\n") 
-            savefile.write("AmountOfReleasedBoxes = " + str(GamePuzzle.boxes.open) + "\n")
-            savefile.write("LabeledBoxes = " + str(GamePuzzle.boxes.guessed) + "\n")
-            savefile.write(f"mode = {GameSetup.mode}\n")
-            savefile.write("Num_to_Coord = " + str(GamePuzzle.ViewCubeCoordTranslate) + "\n")
-            savefile.write("Cx = " + str(GamePuzzle.usercenter.xv) + "\n")
-            savefile.write("Cy = " + str(GamePuzzle.usercenter.yv) + "\n")
-            savefile.write("Cz = " + str(GamePuzzle.usercenter.zv) + "\n")
-            savefile.write("PinkBoxNumber = " + str(GamePuzzle.pinkboxnumber) + "\n")
-            savefile.write("hoverover_elementtags = " + str(GameCaptions.hoveroverelement) + "\n")
-            savefile.write("hoverover_texttags = " + str(GameCaptions.hoverovertext) + "\n")
-            savefile.write("HeightOfButton = " + str(GameStruct.y.ob) + "\n")
-            savefile.write("WidthOfButton = " + str(GameStruct.x.ob) + "\n")
-            savefile.write(f"GLX = {GamePuzzle.centerGLim.xv}\n")
-            savefile.write(f"GLY = {GamePuzzle.centerGLim.yv}\n")
-            savefile.write(f"GLZ = {GamePuzzle.centerGLim.zv}\n")
-            savefile.write(f"LLX = {GamePuzzle.centerLLim.xv}\n")
-            savefile.write(f"LLY = {GamePuzzle.centerLLim.yv}\n")
-            savefile.write(f"LLZ = {GamePuzzle.centerLLim.zv}\n")
-            savefile.write(f"C1 = {GameStruct.x.base}\n")
-            savefile.write(f"C2 = {GameStruct.x.Zchange}\n")
-            savefile.write(f"C3 = {GameStruct.x.self_change}\n")
-            savefile.write(f"C4 = {GameStruct.y.base}\n")
-            savefile.write(f"C5 = {GameStruct.y.Zchange}\n")
-            savefile.write(f"C6 = {GameStruct.y.self_change}\n")
-            savefile.write(f"Confirmation = '{GameCaptions.confirmation}'\n")
-            savefile.close()
+            import save
+            save.saveClasses(GamePuzzle, GameStruct, GameCaptions, GameSetup)
             return redirect(url_for('Minesweeper_play'))
-        elif request.form.get('open'):
-            from savefile import PointsRecord as Poi
-            GamePuzzle.AllCubes = Poi
-            from savefile import T_H, T_W, T_L, V_X, V_Y, V_Z, P_M, C1, C2, C3, C4, C5, C6, MineHitter
-            from savefile import AmountOfReleasedBoxes, LabeledBoxes, Num_to_Coord, Cx, Cy, Cz, hoverover_elementtags, hoverover_texttags
-            from savefile import PinkBoxNumber, WidthOfButton, HeightOfButton, Confirmation
-            from savefile import GLX, GLY, GLZ, LLX, LLY, LLZ, mode
-            GamePuzzle.total.set(T_W, T_H, T_L)
-            GamePuzzle.view.set(V_X, V_Y, V_Z)
-            GamePuzzle.centerGLim.set(GLX, GLY, GLZ)
-            GamePuzzle.centerLLim.set(LLX, LLY, LLZ)
-            GamePuzzle.boxes.unfound_mines = P_M
-            GamePuzzle.usercenter.set(Cx, Cy, Cz)
-            GamePuzzle.death = MineHitter
-            GamePuzzle.pinkboxnumber = PinkBoxNumber
-            GameStruct.x.set(C1, C2, C3, 12/WidthOfButton)
-            GameStruct.y.set(C4, C5, C6, 12/HeightOfButton)
-            GamePuzzle.boxes.guessed = LabeledBoxes
-            GamePuzzle.boxes.open = AmountOfReleasedBoxes
-            GameCaptions.confirmation = Confirmation
-            GameCaptions.hoveroverelement = hoverover_elementtags
-            GameCaptions.hoverovertext = hoverover_texttags
-            GamePuzzle.ViewCubeCoordTranslate =  Num_to_Coord
-            GameSetup.mode = mode
-            return redirect(url_for('Minesweeper_play'))
+        # elif request.form.get('open'):
+        #     from saves.puzzle import GamePuzzle as savedPU
+        #     GamePuzzle = savedPU
+        #     from saves.struct import GameStruct  as savedST
+        #     GameStruct = savedST
+        #     from saves.captions import GameCaptions as savedCA
+        #     GameCaptions = savedCA
+        #     from saves.setup import GameSetup as savedSE
+        #     GameSetup = savedSE
+        #     return redirect(url_for('Minesweeper_play'))
+        
         else:
             GameCaptions.confirmation = ""
             for i in range(GamePuzzle.view.xy*GamePuzzle.view.zv):
@@ -309,7 +229,6 @@ def Minesweeper_play():
                         GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] = 'markable'
                     elif GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] == 'markable' and request.form.get(str(i+1)) == " ":
                         if GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0] == "mine closed":
-                            print(GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])])
                             GamePuzzle.death += 1
                         elif GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0] == "block":
                             GamePuzzle.boxes.open += 1
@@ -324,7 +243,7 @@ def Minesweeper_play():
 
 app.secret_key = 'oetc2802w?ih,i!MkdC>IC.l?<IH'
 if __name__ == "__main__":
-    app.run(port=4500)
+    app.run(port=4000)
 
 # 328 lines
 
