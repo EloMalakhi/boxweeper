@@ -1,6 +1,15 @@
 from flask import render_template
 
 def check_for_direction(Cx, Cy, Cz, GamePuzzle):
+    # INPUT in sequential order:
+    # Cx: integer: the x location of the center of the view
+    # Cy: integer: the y location of the center of the view
+    # Cz: integer: the z location of the center of the view
+    # GamePuzzle: class: structure found in saves/PuzzleClass.py
+    
+    # OUTPUT:
+    # List: type List: has the list of possible directions user can move
+
     List = {}
     count = -1
     if Cx > GamePuzzle.centerLLim.xv:
@@ -24,6 +33,14 @@ def check_for_direction(Cx, Cy, Cz, GamePuzzle):
     return List
 
 def call_html_form(GameSetup, GameCaptions, GamePuzzle, GameStruct):
+    # INPUTS (in sequential order):
+    # GameSetup: class: structure is found in saves/SetupClass.py
+    # GameCaptions: class: structure is found in saves/CaptionClass.py
+    # GamePuzzle: class: structure is found in saves/PuzzleClass.py
+    # GameStruct: class: structure is found in saves/ConstructClass.py
+
+    # OUTPUT:
+    # a flask render_template of GameSetup.FileMatrix[1][GameSetup.mode] (the Game Content File) with all the parameters called by that html form
     return render_template(GameSetup.FileMatrix[1][GameSetup.mode],
             hoverover_elementtags=GameCaptions.hoveroverelement,
             xX = GamePuzzle.total.xv, 

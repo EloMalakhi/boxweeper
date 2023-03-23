@@ -1,4 +1,15 @@
+
+
+
 def presets_of_type_1(request, error):
+#   INPUTS (in sequential order):
+#   request = flask processing an html form and giving a html form request  
+#   error is an empty string
+#
+#   OUTPUTS (in sequential order):
+#   error: a string that is either "" or a set of lines noting what invalid information was given in the html form
+#   EnoughInformation = True if error == "" (hence no invalid data given) or False if invalid data was given
+
     EnoughInformation = True
     if not request.form.get('v1').isdigit():
         error += "You didn't add a proper number for the width\n"
@@ -59,6 +70,14 @@ def presets_of_type_1(request, error):
     return error, EnoughInformation
 
 def presets_of_type_2(request, error):
+#   INPUTS (in sequential order):
+#   request = flask processing an html form and giving a html form request  
+#   error is an empty string
+#
+#   OUTPUTS (in sequential order):
+#   error: a string that is either "" or a set of lines noting what invalid information was given in the html form
+#   EnoughInformation = True if error == "" (hence no invalid data given) or False if invalid data was given  
+    
     EnoughInformation = True
     if not request.form.get('v1').isdigit():
         error += "You didn't add a proper number for the width\n"

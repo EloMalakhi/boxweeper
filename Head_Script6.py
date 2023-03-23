@@ -22,8 +22,15 @@ global GameSetup, GamePuzzle, GameStruct, GameCaptions
 # box will be colored pink
 
 # C1 - C6 are constants calculated before the calling of the web pages and used to assist flask in correctly spacing the buttons in the index html files
-
+# Credit to the graphics designer for the revised button in this edition
 def check_in_bounds(x, y, z):
+    # INPUTS (in sequential order):
+    # x: integer: the first number shown in the textfield of the game content form
+    # y: integer: the 2nd number shown in the textfield of the game content form
+    # z: integer: the 3rd number shown in the textfield of  the game content form
+    # this function returns True if the user enters a allowable center for the view
+    #      False otherwise
+
     TorF = False
     if isINTEGER(x) and isINTEGER(y) and isINTEGER(z):
         x = int(x)
@@ -38,6 +45,8 @@ def check_in_bounds(x, y, z):
     return TorF
 
 def isINTEGER(num):
+    # this validates num to be a correct number in string form and then returns  True or False depending on the validity
+
     if re.findall("^-\d*\.\d+$", num):
         return True
     elif re.findall("^-\d+$", num):
@@ -50,12 +59,29 @@ def isINTEGER(num):
         return False
 
 def remove_cavity(Cavity_for_removal, PointsRecord):
+    # INPUT: (in order):
+    # Cavity_for_removal: str: the name of the cavity that was discovered
+    # Points_Record: 
+    # #           {(x: int, y: int, z: int): [description_of_box: str, mark_status: str],
+# #                (x: int, y: int, z: int): [description_of_box: str, mark_status: str],
+# #                (x: int, y: int, z: int): [description_of_box: str, mark_status: str],
+#                  (x: int, y: int, z: int): [description_of_box: str, mark_status: str], etc} # all the keys corresponding to all the points
+
+    # goes through all the points and looks for cavities marked by the uncovered cavity and then removes them
     for i in PointsRecord:
         if PointsRecord[i][0] == Cavity_for_removal:
             PointsRecord[i] = [" ", "unmarkable"]
             GamePuzzle.boxes.open += 1
 
 def Check_For_Mines(PosX, PosY, PosZ, GamePuzzle):
+    # INPUT (in sequential order):
+    # PosX: int: the x of the 3D location in question
+    # PosY: int: the y of the 3D location in question
+    # PosZ: int: the z of the 3D location in question
+#     GamePuzzle: class: structure is found in saves/PuzzleClass.py
+
+#   OUTPUT:
+#       count: int: the amount of mines found around the 3D location
     count = 0
     for i in range(3):
         y = i - 1
@@ -69,15 +95,19 @@ def Check_For_Mines(PosX, PosY, PosZ, GamePuzzle):
     return count
 
 def ValidateLabels():
+    # checks to see if all the mines have been marked if so returns True, otherwise returns False
     for i in GamePuzzle.AllCubes:
         if GamePuzzle.AllCubes[i][0] == "mine closed" and GamePuzzle.AllCubes[i][1] == "marked":
-            GamePuzzle.boxes.unfound_mines
+            GamePuzzle.boxes.unfound_mines -= 1
     if GamePuzzle.boxes.unfound_mines == 0:
         return True
     else:
         return False
 
 def D3_Minesweeper_Post2(request):
+    # INPUT: request: type: flask request
+    # OUTPUT: flask redirect to function location | flask rendering html_form
+
     # the request for only a 3 x 3 x 3 box
     GameSetup.EnoughInformation = True
     if request.form.get('v14'):
@@ -93,6 +123,9 @@ def D3_Minesweeper_Post2(request):
         return render_template(GameSetup.PresetFile, error=GameSetup.error)
 
 def D3_Minesweeper_Post1(request):
+    # INPUT: request: type: flask request
+    # OUTPUT: flask redirect to function location | flask rendering html_form
+
     # the request for an irregular box
     GameSetup.EnoughInformation = True
     if request.form.get('v14'):
@@ -114,6 +147,7 @@ app = Flask(__name__)
 #  these three lines are the home page of the game
 @app.route('/', methods=['GET', 'POST'])
 def Modes(): # 18 lines
+    # OUTPUT: type: flask redirect to decorator | type: flask render_template html_form
     global GamePuzzle,  GameStruct, GameCaptions, GameSetup
     """ defines the amount of playable modes
         makes a dictionary attaching the mode number to the necessary web pages
@@ -150,6 +184,7 @@ def Modes(): # 18 lines
 
 @app.route('/D3_Minesweeper', methods=['GET', 'POST'])
 def D3_Minesweeper(): # 11 lines
+    # OUTPUT: type: flask redirect to decorator | flask render_template html_form
     global mode
     if request.method == 'GET':
         return render_template(GameSetup.PresetFile)
@@ -163,6 +198,7 @@ def D3_Minesweeper(): # 11 lines
 
 @app.route('/Minesweeper_play', methods=['GET', 'POST'])
 def Minesweeper_play(): # 92 lines
+    # OUTPUT: type: flask redirect to decorator | flask render_template html_form
     if request.method == 'GET':
         if GamePuzzle.death < 3:
             return call_html_form(GameSetup, GameCaptions, GamePuzzle, GameStruct)

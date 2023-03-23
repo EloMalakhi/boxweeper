@@ -1,6 +1,13 @@
 from Head_Script6 import Check_For_Mines
 
 def Stats(Puzzle, Struct, Captions, caller, request):
+    # INPUTS (in sequential order):
+    # Puzzle: class: structure is found in saves/PuzzleClass.py
+    # Struct: class: structure is found in saves/ConstructClass.py
+    # Captions: class: structure is found in saves/CaptionClass.py
+    # caller: "exotic" | "cubic", 'exotic' means it carries different dimensions than 3 by 3 by 3
+    #                             'cubic' means it carries dimensions 3 by 3 by 3
+
     Puzzle.total.set(int(request.form.get('v1')), int(request.form.get('v3')), int(request.form.get('v5')))
     Puzzle.boxes.set(1, Puzzle.total.xy*Puzzle.total.zv - int(request.form.get('v7')), int(request.form.get('v7')), 0)
 

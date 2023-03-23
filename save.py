@@ -1,11 +1,18 @@
 
 def saveClasses(GamePuzzle, GameStruct, GameCaptions, GameSetup):
+    # INPUTS (in sequential order):
+    # GamePuzzle: class: structure is found in saves/PuzzleClass.py
+    # GameStruct: class: structure is found in saves/ConstructClass.py
+    # GameCaptions: class: structure is found in saves/CaptionClass.py
+    # GameSetup: class: structure is found in saves/SetupClass.py
     PuzzleClass(GamePuzzle)
     StructClass(GameStruct)
     CaptionsClass(GameCaptions)
     SetupClass(GameSetup)
 
 def PuzzleClass(GamePuzzle):
+    # INPUTS (in sequential order):
+    # GamePuzzle: class: structure is found in saves/PuzzleClass.py
     h1 = open('saves/puzzle.py', 'w')
     h1.write("from saves.PuzzleClass import *\n")
     h1.write("GamePuzzle = Puzzle()\n")
@@ -20,6 +27,8 @@ def PuzzleClass(GamePuzzle):
     h1.close()
 
 def StructClass(GameStruct):
+    # INPUTS (in sequential order):
+    # GameStruct: class: structure is found in saves/ConstructClass.py
     h2 = open('saves/struct.py', 'w')
     h2.write("from saves.ConstructClass import *\n")
     h2.write('GameStruct = Construct()\n')
@@ -29,6 +38,8 @@ def StructClass(GameStruct):
 
 
 def CaptionsClass(GameCaptions):
+    # INPUTS (in sequential order):
+    # GameCaptions: class: structure is found in saves/CaptionClass.py
     h3 = open('saves/captions.py', 'w')
     h3.write("from saves.CaptionClass import *\n")
     h3.write("GameCaptions = Caption()\n")
@@ -37,6 +48,8 @@ def CaptionsClass(GameCaptions):
 
 
 def SetupClass(GameSetup):
+    # INPUTS (in sequential order):
+    # GameSetup: class: structure is found in saves/SetupClass.py
     h4 = open('saves/setup.py', 'w')
     h4.write('from saves.SetupClass import *\n')
     h4.write("GameSetup = Setup()\n")
