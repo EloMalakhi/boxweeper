@@ -10,8 +10,8 @@ from saves.SetupClass import Setup
 from saves.ConstructClass import Construct
 import data_methods
 from call import call_html_form
-global GameSetup, GamePuzzle, GameStruct, GameCaptions
-
+global GameSetup, GamePuzzle, GameStruct, GameCaptions, openError
+openError = ""
 
 
 # presetPuzzleHeight, presetPuzzleLength, presetPuzzleWidth define the total scope of the height, length, and width of the puzzle
@@ -103,7 +103,7 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def Modes(): # 18 lines
     # OUTPUT: type: flask redirect to decorator | type: flask render_template html_form
-    global GamePuzzle,  GameStruct, GameCaptions, GameSetup
+    global GamePuzzle,  GameStruct, GameCaptions, GameSetup, openError
     """ defines the amount of playable modes
         makes a dictionary attaching the mode number to the necessary web pages
         loops through the modes until 
@@ -111,18 +111,26 @@ def Modes(): # 18 lines
     modes = 4
     
     if request.method == 'GET':
-        return render_template('Modes.html', modes=modes)
+        return render_template('Modes.html', modes=modes, openError = openError)
     else:
+        worked = False
         if request.form.get("open"):
-            from saves.puzzle import GamePuzzle as savedPU
-            GamePuzzle = savedPU
-            from saves.struct import GameStruct  as savedST
-            GameStruct = savedST
-            from saves.captions import GameCaptions as savedCA
-            GameCaptions = savedCA
-            from saves.setup import GameSetup as savedSE
-            GameSetup = savedSE
-            return redirect(url_for('Minesweeper_play'))
+
+            try:
+                from saves.puzzle import GamePuzzle as savedPU
+                GamePuzzle = savedPU
+                from saves.struct import GameStruct  as savedST
+                GameStruct = savedST
+                from saves.captions import GameCaptions as savedCA
+                GameCaptions = savedCA
+                from saves.setup import GameSetup as savedSE
+                GameSetup = savedSE
+                worked = True
+                openError = ""
+                return redirect(url_for('Minesweeper_play'))
+            except:
+                openError = "One of these files don't have the necessary classes\nto fix that adjustment correct the class in that file or start a new game and save it"
+                return redirect(url_for('Modes'))
         else:
             GamePuzzle = Puzzle()
             GameStruct = Construct()
@@ -142,6 +150,9 @@ def D3_Minesweeper(): # 11 lines
     # OUTPUT: type: flask redirect to decorator | flask render_template html_form
     global mode
     if request.method == 'GET':
+        print("aoeuaoeuaeuau")
+        print(GameSetup.PresetFile)
+        print("aoeuaouaouaoeuaoeuao")
         return render_template(GameSetup.PresetFile)
     else:
         if GameSetup.mode == 0:
