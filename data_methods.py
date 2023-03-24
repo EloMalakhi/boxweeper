@@ -79,8 +79,8 @@ def FinishWriting(GamePuzzle):
 def defineStats_bymethod(Puzzle, request):
     Puzzle.boxes.set(1, Puzzle.total.xy*Puzzle.total.zv - int(request.form.get('v7')), int(request.form.get('v7')), 0)
     Puzzle.boxes.guessed = 0
-    import test4
-    Puzzle.AllCubes = test4.MakeSweeperGame(Puzzle.total.yv, Puzzle.total.xv, Puzzle.total.zv, Puzzle.boxes.unfound_mines)
+    import test
+    Puzzle.AllCubes = test.MakeSweeperGame(Puzzle.total.yv, Puzzle.total.xv, Puzzle.total.zv, Puzzle.boxes.unfound_mines)
     NoZero = True
     while NoZero:
         for i in Puzzle.AllCubes:
