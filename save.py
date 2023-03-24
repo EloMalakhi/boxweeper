@@ -1,3 +1,6 @@
+import time
+import data_methods
+
 
 def saveClasses(GamePuzzle, GameStruct, GameCaptions, GameSetup):
     # INPUTS (in sequential order):
@@ -21,10 +24,10 @@ def PuzzleClass(GamePuzzle):
     h1.write(f"GamePuzzle.usercenter.set({GamePuzzle.usercenter.xv}, {GamePuzzle.usercenter.yv}, {GamePuzzle.usercenter.zv})\n")
     h1.write(f"GamePuzzle.centerGLim.set({GamePuzzle.centerGLim.xv}, {GamePuzzle.centerGLim.yv}, {GamePuzzle.centerGLim.zv})\n")
     h1.write(f"GamePuzzle.centerLLim.set({GamePuzzle.centerLLim.xv}, {GamePuzzle.centerLLim.yv}, {GamePuzzle.centerLLim.zv})\n")
-    h1.write(f"GamePuzzle.AllCubes, GamePuzzle.ViewCubeCoordTranslate, GamePuzzle.pinkboxnumber = {str(GamePuzzle.AllCubes)}, {str(GamePuzzle.ViewCubeCoordTranslate)}, {str(GamePuzzle.pinkboxnumber)}\n")
-    h1.write(f"GamePuzzle.boxes.set({GamePuzzle.boxes.open}, {GamePuzzle.boxes.closed}, {GamePuzzle.boxes.unfound_mines}, {GamePuzzle.boxes.guessed})\n")
     h1.write(f"GamePuzzle.death = {GamePuzzle.death}\n")
     h1.close()
+    time.sleep(.2)
+    data_methods.FinishWriting(GamePuzzle)
 
 def StructClass(GameStruct):
     # INPUTS (in sequential order):

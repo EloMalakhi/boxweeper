@@ -43,8 +43,21 @@ class Puzzle(object):
         self.usercenter = PuzzleNode() # 3-D position of where the user leaves off
         self.pinkboxnumber = None # if the dimensions aren't 3 by 3 by 3 then the pinkboxnumber indicates what is the improvised center
         self.ViewCubeCoordTranslate = {} # A translating dictionary for the button number clicked on translating to the 3-D position adjustment
-        self.AllCubes = {} # 
+        self.AllCubes = {} #
         #         {(x: int, y: int, z: int): [description_of_box: str, mark_status: str],
 # #                (x: int, y: int, z: int): [description_of_box: str, mark_status: str],
 # #                (x: int, y: int, z: int): [description_of_box: str, mark_status: str],
 #                  (x: int, y: int, z: int): [description_of_box: str, mark_status: str], etc} # all the keys corresponding to all the points
+
+
+# There are closed boxes with cavities
+# there are closed boxes with mines
+# there are closed boxes with numbers
+# there are open boxes with cavities
+# there are open boxes with numbers
+# there are labeled boxes
+
+# there are cavities (statuses: closed, open)
+# there are mines (statuses: )
+# there are numbers
+# 

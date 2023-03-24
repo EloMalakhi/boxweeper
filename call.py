@@ -1,4 +1,5 @@
 from flask import render_template
+from data_methods import call_bymethod
 
 def check_for_direction(Cx, Cy, Cz, GamePuzzle):
     # INPUT in sequential order:
@@ -41,6 +42,7 @@ def call_html_form(GameSetup, GameCaptions, GamePuzzle, GameStruct):
 
     # OUTPUT:
     # a flask render_template of GameSetup.FileMatrix[1][GameSetup.mode] (the Game Content File) with all the parameters called by that html form
+    Quadruple = call_bymethod(GamePuzzle)
     return render_template(GameSetup.FileMatrix[1][GameSetup.mode],
             hoverover_elementtags=GameCaptions.hoveroverelement,
             xX = GamePuzzle.total.xv, 
@@ -51,11 +53,14 @@ def call_html_form(GameSetup, GameCaptions, GamePuzzle, GameStruct):
             MineHitter=GamePuzzle.death, 
             px = GamePuzzle.view.xv,
             py = GamePuzzle.view.yv,
-            pz = GamePuzzle.view.zv,
-            PointsRecord=GamePuzzle.AllCubes, 
+            pz = GamePuzzle.view.zv, 
             Available_directions=check_for_direction(GamePuzzle.usercenter.xv, GamePuzzle.usercenter.yv, GamePuzzle.usercenter.zv, GamePuzzle),
             Pink=GamePuzzle.pinkboxnumber, 
             amount_of_directions=len(check_for_direction(GamePuzzle.usercenter.xv, GamePuzzle.usercenter.yv, GamePuzzle.usercenter.zv, GamePuzzle)),
             c1=GameStruct.x.base, c2=GameStruct.x.Zchange, c3=GameStruct.x.self_change, c4=GameStruct.y.base, c5=GameStruct.y.Zchange, c6=GameStruct.y.self_change,
             wob=GameStruct.x.ob, hob=GameStruct.y.ob,
-            MM=GamePuzzle.boxes.unfound_mines, LL=GamePuzzle.boxes.guessed, RB=GamePuzzle.boxes.open, CF=GameCaptions.confirmation)
+            CF=GameCaptions.confirmation,
+            MM=Quadruple[0], 
+            LL=Quadruple[1], 
+            RB=Quadruple[2],
+            PointsRecord = Quadruple[3])

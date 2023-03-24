@@ -8,6 +8,7 @@ from saves.CaptionClass import Caption
 from saves.PuzzleClass import Puzzle
 from saves.SetupClass import Setup
 from saves.ConstructClass import Construct
+import data_methods
 from call import call_html_form
 global GameSetup, GamePuzzle, GameStruct, GameCaptions
 
@@ -54,52 +55,6 @@ def isINTEGER(num):
     elif re.findall("^\d*\.\d+$", num):
         return True
     elif re.findall("^\d+$", num):
-        return True
-    else:
-        return False
-
-def remove_cavity(Cavity_for_removal, PointsRecord):
-    # INPUT: (in order):
-    # Cavity_for_removal: str: the name of the cavity that was discovered
-    # Points_Record: 
-    # #           {(x: int, y: int, z: int): [description_of_box: str, mark_status: str],
-# #                (x: int, y: int, z: int): [description_of_box: str, mark_status: str],
-# #                (x: int, y: int, z: int): [description_of_box: str, mark_status: str],
-#                  (x: int, y: int, z: int): [description_of_box: str, mark_status: str], etc} # all the keys corresponding to all the points
-
-    # goes through all the points and looks for cavities marked by the uncovered cavity and then removes them
-    for i in PointsRecord:
-        if PointsRecord[i][0] == Cavity_for_removal:
-            PointsRecord[i] = [" ", "unmarkable"]
-            GamePuzzle.boxes.open += 1
-
-def Check_For_Mines(PosX, PosY, PosZ, GamePuzzle):
-    # INPUT (in sequential order):
-    # PosX: int: the x of the 3D location in question
-    # PosY: int: the y of the 3D location in question
-    # PosZ: int: the z of the 3D location in question
-#     GamePuzzle: class: structure is found in saves/PuzzleClass.py
-
-#   OUTPUT:
-#       count: int: the amount of mines found around the 3D location
-    count = 0
-    for i in range(3):
-        y = i - 1
-        for k in range(3):
-            x = k - 1
-            for j in range(3):
-                z = j - 1
-                if GamePuzzle.AllCubes.get((x+PosX, y+PosY, z+PosZ)):
-                    if GamePuzzle.AllCubes[(x+PosX, y+PosY, z+PosZ)][0] == "mine closed":
-                        count += 1
-    return count
-
-def ValidateLabels():
-    # checks to see if all the mines have been marked if so returns True, otherwise returns False
-    for i in GamePuzzle.AllCubes:
-        if GamePuzzle.AllCubes[i][0] == "mine closed" and GamePuzzle.AllCubes[i][1] == "marked":
-            GamePuzzle.boxes.unfound_mines -= 1
-    if GamePuzzle.boxes.unfound_mines == 0:
         return True
     else:
         return False
@@ -227,8 +182,8 @@ def Minesweeper_play(): # 92 lines
                 GamePuzzle.usercenter.yv = int(List[1])
                 GamePuzzle.usercenter.zv = int(List[2])
         elif request.form.get('CM'):
-            if GamePuzzle.boxes.guessed == GamePuzzle.boxes.unfound_mines:
-                if ValidateLabels():
+            if data_methods.PossiblyFound(GamePuzzle):
+                if data_methods.ValidateLabels(GamePuzzle):
                     GameCaptions.confirmation = "You got all of them, you win!"
                     return redirect(url_for('Minesweeper_play'))
                 else:
@@ -257,21 +212,7 @@ def Minesweeper_play(): # 92 lines
             for i in range(GamePuzzle.view.xy*GamePuzzle.view.zv):
                 buttonPressed = i + 1
                 if request.form.get(str(i+1)):
-                    if GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] == 'markable' and request.form.get(str(i+1)) == "  ":
-                        GamePuzzle.boxes.guessed += 1
-                        GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] = 'marked'
-                    elif GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] == 'marked' and request.form.get(str(i+1)) == " ":
-                        GamePuzzle.boxes.guessed -= 1
-                        GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] = 'markable'
-                    elif GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][1] == 'markable' and request.form.get(str(i+1)) == " ":
-                        if GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0] == "mine closed":
-                            GamePuzzle.death += 1
-                        elif GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0] == "block":
-                            GamePuzzle.boxes.open += 1
-                            GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])] = [Check_For_Mines(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2], GamePuzzle), 'unmarkable']
-                        elif 'cavity' in GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0]:
-                            remove_cavity(GamePuzzle.AllCubes[(GamePuzzle.usercenter.xv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][0], GamePuzzle.usercenter.yv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][1], GamePuzzle.usercenter.zv + GamePuzzle.ViewCubeCoordTranslate[buttonPressed][2])][0], GamePuzzle.AllCubes)
-
+                    data_methods.process_request(GamePuzzle, request, buttonPressed)
 
         return redirect(url_for('Minesweeper_play'))
        
@@ -280,6 +221,3 @@ def Minesweeper_play(): # 92 lines
 app.secret_key = 'oetc2802w?ih,i!MkdC>IC.l?<IH'
 if __name__ == "__main__":
     app.run(port=4000)
-
-# 328 lines
-
