@@ -37,7 +37,7 @@ def Stats(Puzzle, Struct, Captions, caller, request):
 
     Puzzle.centerGLim.set(Puzzle.total.xv - 2, Puzzle.total.yv - 2, Puzzle.total.zv - 2)
     Puzzle.centerLLim.set(Puzzle.view.xv - 2, Puzzle.view.yv - 2, Puzzle.view.zv - 2)
-    Puzzle.usercenter.set(Puzzle.total.xv - 2, Puzzle.total.yv - 2, Puzzle.total.zv - 2)
+
 
     Puzzle.pinkboxnumber  = (Puzzle.view.yv - 2)*Puzzle.view.xz + Puzzle.centerLLim.xv*Puzzle.view.zv + (Puzzle.view.zv - 1)
     
@@ -72,3 +72,37 @@ def Stats(Puzzle, Struct, Captions, caller, request):
     # find the cube to become the starting point
     defineStats_bymethod(Puzzle, request)
 
+    # finds the first zero cube to start the puzzle with
+    NoZero = True
+    while NoZero:
+        for i in Puzzle.AllCubes:
+            if Check_For_Mines(i[0], i[1], i[2], Puzzle) == 0:
+                NoZero = False
+                Puzzle.AllCubes[i][1] = "unmarkable"
+                Puzzle.AllCubes[i][0] = "0"
+                tryX, tryY, tryZ = i[0], i[1], i[2]
+                break
+    
+
+    if tryX < Puzzle.centerLLim.xv:
+        Cx = Puzzle.centerLLim.xv
+    elif tryX > Puzzle.centerGLim.xv:
+        Cx = Puzzle.centerGLim.xv
+    else:
+        Cx = tryX
+
+    if tryY < Puzzle.centerLLim.yv:
+        Cy = Puzzle.centerLLim.yv
+    elif tryY > Puzzle.centerGLim.yv:
+        Cy = Puzzle.centerGLim.yv
+    else:
+        Cy = tryY
+
+    if tryZ < Puzzle.centerLLim.zv:
+        Cz = Puzzle.centerLLim.zv
+    elif tryZ > Puzzle.centerGLim.zv:
+        Cz = Puzzle.centerGLim.zv
+    else:
+        Cz = tryZ
+
+    Puzzle.usercenter.set(Cx, Cy, Cz)

@@ -150,9 +150,6 @@ def D3_Minesweeper(): # 11 lines
     # OUTPUT: type: flask redirect to decorator | flask render_template html_form
     global mode
     if request.method == 'GET':
-        print("aoeuaoeuaeuau")
-        print(GameSetup.PresetFile)
-        print("aoeuaouaouaoeuaoeuao")
         return render_template(GameSetup.PresetFile)
     else:
         if GameSetup.mode == 0:
@@ -232,3 +229,4 @@ def Minesweeper_play(): # 92 lines
 app.secret_key = 'oetc2802w?ih,i!MkdC>IC.l?<IH'
 if __name__ == "__main__":
     app.run(port=4000)
+
