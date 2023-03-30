@@ -1,0 +1,101 @@
+<link rel="stylesheet" href="/static/Cube.css">
+<form action="/Minesweeper_play" method="POST">
+
+    <pre style="color:white">
+To select a box as a mine, right click on it. then left click on it       {{LL}} possible discovered mines / {{MM}} Mines
+                                                                          {{RB}} deactivated boxes / {{TB - MM}} non-Mine boxes <input type="submit" value="Confirm Mines" name="CM">
+{% if Strikes == 1 %}
+                                                                          Three Strikes and you're out!
+{% elif Strikes == 2 %}
+                                                                          Second Strike!
+{% elif Strikes == 3 %}
+                                                                          Third Strike!
+{% endif %}
+
+{% if CF == "You got all of them, you win!" %}
+    <a href="/" style="color: white">You Won!! Woohoo!! 3:>) Play Again?</a>
+{% else %}
+    {{CF}}
+{% endif %}
+<input type="submit" name="save" value="save">
+    </pre>
+    <!-- this loop makes the 27 element tags and text tags needed for the buttons using the imported hashes 
+        hoverover_element tags and hoverover_texttags -->
+    {% for i in range(px*py*pz) %}
+        {% set k = i + 1 %}
+            <style>
+                div {{hoverover_elementtags[k]}} {
+                    display: block;
+                }
+
+                {{hoverover_texttags[k]}}.caption {
+                    position: absolute;
+                    left: 80%;
+                    top: 50%;
+                    opacity: 0;
+                    font-size: 20px;
+                    color: white;
+                    transition: opacity 3s;
+                }
+
+                div {{hoverover_elementtags[k]}}:hover + {{hoverover_texttags[k]}} {
+                    opacity: 1;
+                }
+            </style>
+    {% endfor %}
+    <!-- this makes the browser screen a dark green color-->
+    <body style="background-color: #022c02;">
+        
+        {% for i in range(1, (py + 1)) %} <!-- y -->
+            {% for j in range(1, (px + 1)) %} <!-- x -->
+                {% for k in range(1, (pz + 1)) %} <!-- z -->
+                    {% set naim = px*pz*(i-1) + pz*(j-1) + k %}
+                    {% set left = c1 + c2*k + c3*j %}
+                    {% set top = c4 + c5*k + c6*i %}
+                    {% set hopeitworks = "position: absolute; left: " ~ left ~ "%; top: " ~ top ~ "%; width: " ~ wob ~ "%; height: " ~ hob ~ "%;" %}
+                    {% set colorswatch = "filter: brightness(" ~ '{0:0.0f}'.format(100 + 181*(y + Num_to_Coord[naim][1])/(yY - 1)) ~ "%) saturate(" ~ '{0:0.0f}'.format(100 + 928*((x + Num_to_Coord[naim][0])/(xX - 1))) ~ "%) hue-rotate(" ~ '{0:0.0f}'.format(240*(z + Num_to_Coord[naim][2])/(zZ - 1) - 120) ~ "deg);"  %}
+                        <!-- indicates which button belongs to which hover tag-->
+                        <div class="block">
+                        <{{hoverover_elementtags[naim]}}>
+                                    {% if PointsRecord[(x + Num_to_Coord[naim][0], y + Num_to_Coord[naim][1], z + Num_to_Coord[naim][2])][1] == 'markable' %}
+                                        <input type="submit" class='cube' style="{{hopeitworks}} {{colorswatch}} font-size: {{FS}}px; font-weight: bold" oncontextmenu="style='{{hopeitworks}} filter: brightness(10%); font-size: {{FS}}px; font-weight: bold'; value='  '" value=' ' name={{naim}} id={{naim}}>
+                                    {% elif PointsRecord[(x + Num_to_Coord[naim][0], y + Num_to_Coord[naim][1], z + Num_to_Coord[naim][2])][1] == 'marked' %}
+                                        <input type="submit" class='cube' style='{{hopeitworks}} filter: brightness(10%); font-size: {{FS}}px; font-weight: bold' oncontextmenu='style="{{hopeitworks}} {{colorswatch}} font-size: {{FS}}px; font-weight: bold"; value=" "' value='  ' name={{naim}} id={{naim}}>
+                                    {% elif PointsRecord[(x + Num_to_Coord[naim][0], y + Num_to_Coord[naim][1], z + Num_to_Coord[naim][2])][1] == 'unmarkable' %}
+                                        {% if PointsRecord[(x + Num_to_Coord[naim][0], y + Num_to_Coord[naim][1], z + Num_to_Coord[naim][2])][0] == ' ' %}
+                                            <input type="submit" class="cube" style='{{hopeitworks}} background-image: url("/static/camo.png"); font-size: {{FS}}px; font-weight: bold' value=' '>
+                                        {% else %}
+                                            {% if PointsRecord[(x + Num_to_Coord[naim][0], y + Num_to_Coord[naim][1], z + Num_to_Coord[naim][2])][0] == 0 %}
+                                                <input type="submit" style='{{hopeitworks}} background-color: rgba(2, 44, 2, 0); border-width: 0px; font-size: 20px; font-weight: bold' value=' '>
+                                            {% else %}
+                                                <input type="submit" class="cube" style='{{hopeitworks}} {{colorswatch}} font-size: 20px; font-weight: bold' value={{PointsRecord[(x + Num_to_Coord[naim][0], y + Num_to_Coord[naim][1], z + Num_to_Coord[naim][2])][0]}}>
+                                            {% endif %}
+                                            
+                                        {% endif %}
+                                    {% endif %}
+                        </{{hoverover_elementtags[naim]}}>
+                        <!-- indicates which text tag belongs to which hover tag-->
+                        <{{hoverover_texttags[naim]}} class='caption'>
+                        {% if PointsRecord[(x + Num_to_Coord[naim][0], y + Num_to_Coord[naim][1], z + Num_to_Coord[naim][2])][1] == 'unmarkable' and PointsRecord[(x + Num_to_Coord[naim][0], y + Num_to_Coord[naim][1], z + Num_to_Coord[naim][2])][0] != ' ' %}
+                            Position is {{x + Num_to_Coord[naim][0]}} {{y + Num_to_Coord[naim][1]}} {{z + Num_to_Coord[naim][2]}} Number is {{PointsRecord[(x + Num_to_Coord[naim][0], y + Num_to_Coord[naim][1], z + Num_to_Coord[naim][2])][0]}}
+                        {% else %}
+                            Position is {{x + Num_to_Coord[naim][0]}} {{y + Num_to_Coord[naim][1]}} {{z + Num_to_Coord[naim][2]}}
+                        {% endif %}
+                            
+                        </{{hoverover_texttags[naim]}}>
+                        </div>
+                {% endfor %}
+            {% endfor %}
+        {% endfor %}
+
+        {% for i in range(amount_of_directions) %}
+            <input type="submit" style="position: absolute; left: 5%; top: {{10*i + 10}}%; color: dark-green" name={{Available_directions[i]}} value={{Available_directions[i]}}>
+        {% endfor %}
+        {% if px != 3 or py != 3 or pz != 3 %}
+            <pre style="position: absolute; left: 5%; top: 80%; color: white; font-size: 20">Location of pink box</pre>
+            <pre><input type="text" style="position: absolute; left: 5%; top: 87%; color: black; font-size: 20; width: 15%" value='{{x}} {{y}} {{z}}' name="positionString"><input type="submit" style="position: absolute; left: 21%; top: 87%" name="position"></pre>
+        {% else %}
+            <pre style="position: absolute; left: 5%; top: 80%; color: white; font-size: 20">Center</pre>
+            <pre><input type="text" style="position: absolute; left: 5%; top: 87%; color: black; font-size: 20; width: 15%" value='{{x}} {{y}} {{z}}' name="positionString"><input type="submit" style="position: absolute; left: 21%; top: 87%" name="position"></pre>
+        {% endif %}
+</form>
