@@ -23,69 +23,6 @@ alternatively installed by entering
 
 pip3.10 install flask
 
-<h1>Setting up file structure</h1>
-The file structure may be in the right order or not.
-To be clear, there should be a parent folder wherever
-you decide the game to go.
-
-Under the parent folder there should be these three
-folders: saves, template, static
-and these 7 files:
-call.py, data_methods.py, define.py, Head_Script.py
-save.py, test.py, validate.py.
-
-Under the templates folder there should be these
-8 html pages:
-index5.html, index7.html, index8.html, index9.html,
-MinesweeperDeath.html, Modes.html, Presets.html,
-Presets3.html.
-
-Under the static folder should be these 5 files:
-Cube.css, MD.css, explosion.jpeg, tomb-stone.png,
-unclicked.png.
-
-Under the saves folder should be these 8 files:
-CaptionClass.py, PuzzleClass.py, ConstructClass.py,
-SetupClass.py, (next 4 contain game saves)
-setup.py, puzzle.py, struct.py, captions.py.
-
-Here is an overview of the necessary file structure:
-(other files that show up aren't necessary)
-
-    Parent_folder
-        > call.py
-        > data_methods.py
-        > define.py
-        > Head_Script.py
-        > save.py
-        > test.py
-        > validate.py
-        |
-        > templates
-            > index5.html
-            > index7.html
-            > index8.html
-            > index9.html
-            > MinesweeperDeath.html
-            > Modes.html
-            > Presets.html
-            > Presets3.html
-        > saves
-            > PuzzleClass.py
-            > ConstructClass.py
-            > CaptionClass.py
-            > SetupClass.py
-            > struct.py
-            > setup.py
-            > puzzle.py
-            > captions.py
-        >  static
-            > Cube.css
-            > MD.css
-            > explosion.jpeg
-            > tomb-stone.png
-            > unclicked.png
-
 <h1>How to Play</h1>
 The goal of the game is to label all the mines and then
 hit the confirmation button.
