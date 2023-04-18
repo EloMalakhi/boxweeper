@@ -3,9 +3,9 @@
 This is an open-source implementation of a game
 similar to the popular Windows game minesweeper.
 
-This game is implemented in Python and uses flask
-to create a dynamic 3D representation of a box system
-displayed on a web browser.
+This game is implemented in Python version 3.10 and
+uses flask to create a dynamic 3D representation of
+a box system displayed on a web browser.
 
 <h1>Installing flask</h1>
 This game is available for MacOS and Windows
@@ -15,11 +15,6 @@ has only been operated on MacOS.
 To get started you must have Python installed
 and if you don't have flask installed you can
 enter in terminal or Command Prompt:
-
-pip install flask
-
-for the version of this game flask was
-alternatively installed by entering
 
 pip3.10 install flask
 
