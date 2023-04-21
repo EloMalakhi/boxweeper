@@ -9,7 +9,7 @@ a box system displayed on a web browser.
 
 <h1>Installing flask</h1>
 This game is available for MacOS and Windows
-though up to the release of this README.pd it
+though up to the release of this README.md it
 has only been operated on MacOS.
 
 To get started you must have Python installed
@@ -77,4 +77,6 @@ most of the game content found in unclicked.png (can be changed if desired).
 
 <h1>Contributions</h1>
 Contributions and suggestions are welcome,
-feel free to make a pull request or contact me at matthieu.r.hart@gmail.com
+feel free to make a pull request or contact me at 
+matthieu.r.hart@gmail.com
+
