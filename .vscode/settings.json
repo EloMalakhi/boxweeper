@@ -1,0 +1,4 @@
+{
+    "python.analysis.typeCheckingMode": "off",
+    "markdown-pdf.breaks": true
+}
