@@ -30,7 +30,10 @@ class PuzzleNode(object):
         self.zx = z*x
         self.zy = z*y
         self.zz = z*z
- 
+
+
+    
+
 
 class Puzzle(object):
     def __init__(self):
@@ -48,7 +51,7 @@ class Puzzle(object):
 # #                (x: int, y: int, z: int): [description_of_box: str, mark_status: str],
 # #                (x: int, y: int, z: int): [description_of_box: str, mark_status: str],
 #                  (x: int, y: int, z: int): [description_of_box: str, mark_status: str], etc} # all the keys corresponding to all the points
-
+        
 
 # There are closed boxes with cavities
 # there are closed boxes with mines

@@ -1,5 +1,5 @@
 import time
-import data_methods
+import LowerLevel.data_methods as data_methods
 
 
 def saveClasses(GamePuzzle, GameStruct, GameCaptions, GameSetup):
@@ -56,6 +56,6 @@ def SetupClass(GameSetup):
     h4 = open('saves/setup.py', 'w')
     h4.write('from saves.SetupClass import *\n')
     h4.write("GameSetup = Setup()\n")
-    h4.write(f'GameSetup.set({str(GameSetup.FileMatrix)}, "{GameSetup.error}", {GameSetup.EnoughInformation}, "{GameSetup.PresetFile}", "{GameSetup.indexFile}", {GameSetup.mode})\n')
+    h4.write(f'GameSetup.set("{GameSetup.error}", {GameSetup.EnoughInformation})\n')
     h4.close()
 

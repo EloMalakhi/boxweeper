@@ -1,5 +1,5 @@
 from flask import render_template
-from data_methods import call_bymethod
+from LowerLevel.data_methods import call_bymethod
 
 def check_for_direction(Cx, Cy, Cz, GamePuzzle):
     # INPUT in sequential order:
@@ -43,7 +43,7 @@ def call_html_form(GameSetup, GameCaptions, GamePuzzle, GameStruct):
     # OUTPUT:
     # a flask render_template of GameSetup.FileMatrix[1][GameSetup.mode] (the Game Content File) with all the parameters called by that html form
     Quadruple = call_bymethod(GamePuzzle)
-    return render_template(GameSetup.FileMatrix[1][GameSetup.mode],
+    return render_template("index.html",
             hoverover_elementtags=GameCaptions.hoveroverelement,
             xX = GamePuzzle.total.xv, 
             yY = GamePuzzle.total.yv, 

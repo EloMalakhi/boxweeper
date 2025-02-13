@@ -1,7 +1,7 @@
-from data_methods import *
+from LowerLevel.data_methods import *
 
 
-def Stats(Puzzle, Struct, Captions, caller, request):
+def Stats(Puzzle, Struct, Captions, request):
     # INPUTS (in sequential order):
     # Puzzle: class: structure is found in saves/PuzzleClass.py
     # Struct: class: structure is found in saves/ConstructClass.py
@@ -11,10 +11,7 @@ def Stats(Puzzle, Struct, Captions, caller, request):
 
     Puzzle.total.set(int(request.form.get('v1')), int(request.form.get('v3')), int(request.form.get('v5')))
 
-    if caller == "exotic":
-        Puzzle.view.set(int(request.form.get('v9')), int(request.form.get('v11')), int(request.form.get('v13')))
-    elif caller == "cubic":
-        Puzzle.view.set(3, 3, 3)
+    Puzzle.view.set(3, 3, 3)
 
     Captions.confirmation = ""
 
