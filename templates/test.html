@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+    <form action="/" method="POST">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Option Key Detection</title>
+            
+
+
+            <style>
+                div hov_element {
+                    display: block;
+                }
+
+                hov_text.caption {
+                    position: absolute;
+                    left: 5%;
+                    top: 50%;
+                    opacity: 0;
+                    font-size: 20px;
+                    color: black;
+                    transition: opacity 3s;
+                }
+
+                div hov_element:hover + hov_text {
+                    opacity: 1;
+                }
+            </style>
+
+        </head>
+
+        <body>
+
+            <div class="block">
+                <hov_element>
+                    <button disabled style="position: absolute; left: 20%; top: 20%; width: 60%; height: 60%; color: white; background-color: white">    </button>
+                </hov_element>
+
+                <hov_text class="caption" id="coordinates"></hov_text>
+            </div>
+
+            <script>
+
+                
+                document.addEventListener('keydown', function (event) {
+                    // Detect if the Option key (Alt on some systems) is pressed
+                    if (event.altKey) {
+                        console.log("Option key is held down.");
+                        // Send a request to the Flask server
+                        fetch('/key-action', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ key: 'Option' })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data.message || data.error);
+                        })
+                        .catch(error => console.error('Error:', error));
+                    }
+                });
+                
+            
+                const coordsDisplay = document.getElementById("coordinates");
+                let mouseXinit = 0;
+                let mouseYinit = 0;
+
+                let mouseX = 0;
+                let mouseY = 0;
+
+                // Add an event listener for mouse movement
+                document.addEventListener("mousemove", (event) => {
+                // Get mouse coordinates
+                
+                const mouseXterminus = event.clientX; // X coordinate relative to viewport
+                const mouseYterminus = event.clientY; // Y coordinate relative to viewport
+
+                mouseX = mouseX + mouseXinit - mouseXterminus;
+                mouseY = mouseY + mouseYinit - mouseYterminus;
+                coordsDisplay.textContent = `XDelta: ${mouseXinit - mouseXterminus}, YDelta: ${mouseYinit - mouseYterminus}: Z: 0
+                                             X: ${mouseX}, Y: ${mouseY}, Z: 0`;
+                mouseXinit = mouseXterminus;
+                mouseYinit = mouseYterminus;
+                });
+            </script>
+            
+
+            
+        </body>
+
+    </form>
+</html>
